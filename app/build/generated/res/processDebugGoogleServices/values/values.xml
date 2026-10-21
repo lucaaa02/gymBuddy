@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="gcm_defaultSenderId" translatable="false">1023561064749</string>
+    <string name="google_api_key" translatable="false">AIzaSyDz2zJMNsgdS4YrtV-9wEWfgyiplIhAtqk</string>
+    <string name="google_app_id" translatable="false">1:1023561064749:android:eed6c5d1ec98f72287f3a4</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyDz2zJMNsgdS4YrtV-9wEWfgyiplIhAtqk</string>
+    <string name="google_storage_bucket" translatable="false">gym-buddy-9fe45.firebasestorage.app</string>
+    <string name="project_id" translatable="false">gym-buddy-9fe45</string>
+</resources>
