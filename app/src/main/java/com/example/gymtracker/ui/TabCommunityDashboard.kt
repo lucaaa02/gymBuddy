@@ -173,12 +173,18 @@ fun TabCommunityDashboard(nomeUtenteLoggato: String) {
                 val repsRecord = vincitoriPeso.maxOfOrNull { it.first.reps }
                 val vincitori = vincitoriPeso.filter { it.first.reps == repsRecord }.map { it.first }
 
-                esercizio.nome to if (pesoRecord == null) null else RecordEsercizioMese(
-                    nomeEsercizio = esercizio.nome,
-                    pesoKg = pesoRecord,
-                    vincitori = vincitori
-                )
+                val record = if (pesoRecord == null || miglioriPerUtente.size < 2) {
+                    null
+                } else {
+                    RecordEsercizioMese(
+                        nomeEsercizio = esercizio.nome,
+                        pesoKg = pesoRecord,
+                        vincitori = vincitori
+                    )
+                }
+                esercizio.nome to record
             }
+            .filter { (_, record) -> record != null }
     }
 
     val giorniNelMese = calendarioSelezionato.getActualMaximum(Calendar.DAY_OF_MONTH)
@@ -394,6 +400,8 @@ fun TabCommunityDashboard(nomeUtenteLoggato: String) {
 
                     if (catalogoEsercizi.isEmpty()) {
                         Text("Nessun esercizio disponibile nel database.", fontSize = 12.sp, color = Color.Gray)
+                    } else if (recordPerEsercizio.isEmpty()) {
+                        Text("Nessun esercizio è stato eseguito da almeno due utenti questo mese.", fontSize = 12.sp, color = Color.Gray)
                     } else {
                         recordPerEsercizio.forEachIndexed { index, (nomeEsercizio, record) ->
                             Row(

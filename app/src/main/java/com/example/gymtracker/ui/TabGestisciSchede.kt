@@ -3,6 +3,7 @@ package com.example.gymtracker.ui
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -71,17 +72,19 @@ fun TabGestisciCreaScheda(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
             Card(
                 modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(26.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
-                Column(modifier = Modifier.padding(14.dp)) {
+                Column(modifier = Modifier.padding(18.dp)) {
                     Text(
                         text = if (idSchedaAttuale.isBlank()) "Crea Nuova Scheda" else "Modifica Scheda",
                         fontWeight = FontWeight.Bold,
+                        fontSize = 17.sp,
                         color = MaterialTheme.colorScheme.secondary
                     )
                     Spacer(modifier = Modifier.height(8.dp))
@@ -91,6 +94,7 @@ fun TabGestisciCreaScheda(
                         onValueChange = { titoloScheda = it },
                         label = { Text("Titolo Scheda (es. Lunedì - Petto)") },
                         singleLine = true,
+                        shape = RoundedCornerShape(18.dp),
                         modifier = Modifier.fillMaxWidth()
                     )
 
@@ -106,6 +110,7 @@ fun TabGestisciCreaScheda(
                             onValueChange = {},
                             readOnly = true,
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropdownEspanso) },
+                            shape = RoundedCornerShape(18.dp),
                             modifier = Modifier.menuAnchor().fillMaxWidth()
                         )
 
@@ -163,6 +168,7 @@ fun TabGestisciCreaScheda(
                             onValueChange = { serieTarget = it },
                             label = { Text("Serie") },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            shape = RoundedCornerShape(18.dp),
                             modifier = Modifier.weight(1f)
                         )
                         OutlinedTextField(
@@ -170,6 +176,7 @@ fun TabGestisciCreaScheda(
                             onValueChange = { repsTarget = it },
                             label = { Text("Reps Target") },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            shape = RoundedCornerShape(18.dp),
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -179,6 +186,7 @@ fun TabGestisciCreaScheda(
                         onValueChange = { noteEx = it },
                         label = { Text("Note Esercizio") },
                         singleLine = true,
+                        shape = RoundedCornerShape(18.dp),
                         modifier = Modifier.fillMaxWidth()
                     )
 
@@ -202,7 +210,8 @@ fun TabGestisciCreaScheda(
                             }
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        shape = RoundedCornerShape(20.dp)
                     ) {
                         Text("+ AGGIUNGI ALLA SCHEDA", fontWeight = FontWeight.Bold, color = Color.Black)
                     }
@@ -224,12 +233,13 @@ fun TabGestisciCreaScheda(
             items(listaEserciziInScheda) { ex ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF2A2A2A))
+                    shape = RoundedCornerShape(22.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(12.dp),
+                            .padding(16.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -269,6 +279,8 @@ fun TabGestisciCreaScheda(
                             }
                         },
                         modifier = Modifier.weight(1f)
+                            .height(52.dp),
+                        shape = RoundedCornerShape(18.dp)
                     ) {
                         Text(if (idSchedaAttuale.isBlank()) "SALVA SCHEDA" else "AGGIORNA SCHEDA", fontWeight = FontWeight.Bold, color = Color.Black)
                     }
@@ -279,7 +291,7 @@ fun TabGestisciCreaScheda(
                             titoloScheda = ""
                             listaEserciziInScheda.clear()
                             onModificaCompletata()
-                        }) {
+                        }, shape = RoundedCornerShape(14.dp)) {
                             Text("Annulla", color = Color.Red)
                         }
                     }
@@ -297,12 +309,13 @@ fun TabGestisciCreaScheda(
         items(mieSchede) { scheda ->
             Card(
                 modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(22.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(10.dp),
+                        .padding(14.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -317,10 +330,10 @@ fun TabGestisciCreaScheda(
                             titoloScheda = scheda.titoloScheda
                             listaEserciziInScheda.clear()
                             listaEserciziInScheda.addAll(scheda.esercizi)
-                        }) {
+                        }, shape = RoundedCornerShape(14.dp)) {
                             Text("Modifica", fontSize = 12.sp)
                         }
-                        TextButton(onClick = { FirebaseManager.eliminaScheda(scheda.idScheda) }) {
+                        TextButton(onClick = { FirebaseManager.eliminaScheda(scheda.idScheda) }, shape = RoundedCornerShape(14.dp)) {
                             Text("Elimina", color = Color.Red, fontSize = 12.sp)
                         }
                     }

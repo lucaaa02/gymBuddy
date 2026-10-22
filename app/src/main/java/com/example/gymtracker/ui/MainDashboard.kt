@@ -128,7 +128,6 @@ fun MainDashboard(nomeUtente: String, onLogout: () -> Unit) {
             Pair("Pool Esercizi ➕", "Database condiviso degli esercizi"),
             Pair("Resoconto Personale 📅", "Record, carichi e volume della settimana"),
             Pair("Analisi Esercizi 📊", "Filtra e controlli i pesi degli utenti"),
-            Pair("Grafici Progressi 📈", "Percentuali e grafici di crescita"),
             Pair("Community & Presenze 🏆", "Classifica e calendario presenze"),
             Pair("Feed Amici 🔥", "Guarda gli allenamenti del gruppo")
         )
@@ -378,10 +377,9 @@ fun MainDashboard(nomeUtente: String, onLogout: () -> Unit) {
                             2 -> TabDatabaseEsercizi()
                             3 -> TabResocontoSettimanale(nomeUtente)
                             4 -> TabStatisticheEsercizi()
-                            5 -> TabGraficiProgressi(nomeUtente)
-                            6 -> TabCommunityDashboard(nomeUtente)
-                            7 -> TabFeedAmici()
-                            8 -> TabGestioneAdmin()
+                            5 -> TabCommunityDashboard(nomeUtente)
+                            6 -> TabFeedAmici(nomeUtente)
+                            7 -> TabGestioneAdmin()
                         }
                     }
                 }

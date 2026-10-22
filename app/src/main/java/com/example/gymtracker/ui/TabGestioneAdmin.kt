@@ -21,6 +21,7 @@ import com.example.gymtracker.models.AllenamentoCompletato
 @Composable
 fun TabGestioneAdmin() {
     var feedAllenamenti by remember { mutableStateOf(listOf<AllenamentoCompletato>()) }
+    var profili by remember { mutableStateOf(listOf<String>()) }
     var utenteDaEliminare by remember { mutableStateOf<String?>(null) }
     var ricercaTesto by remember { mutableStateOf("") }
 
@@ -29,18 +30,24 @@ fun TabGestioneAdmin() {
 
     LaunchedEffect(Unit) {
         FirebaseManager.ascoltaFeedAllenamenti { feedAllenamenti = it }
+        FirebaseManager.ascoltaProfili { profili = it }
     }
 
-    val listaUtentiInfo = remember(feedAllenamenti, ricercaTesto) {
-        val mappaUtenti = mutableMapOf<String, Int>()
+    val listaUtentiInfo = remember(feedAllenamenti, profili, ricercaTesto) {
+        val mappaUtenti = mutableMapOf<String, Pair<String, Int>>()
+        profili.forEach { nickname ->
+            mappaUtenti[nickname.lowercase()] = nickname to 0
+        }
         feedAllenamenti.forEach { log ->
-            val nome = log.nomeUtente.uppercase()
-            mappaUtenti[nome] = (mappaUtenti[nome] ?: 0) + 1
+            val nome = log.nomeUtente.trim()
+            val chiave = nome.lowercase()
+            val utente = mappaUtenti[chiave]
+            mappaUtenti[chiave] = (utente?.first ?: nome.uppercase()) to ((utente?.second ?: 0) + 1)
         }
 
-        mappaUtenti.map { Pair(it.key, it.value) }
-            .filter { it.first.contains(ricercaTesto.trim().uppercase()) }
-            .sortedBy { it.first }
+        mappaUtenti.values
+            .filter { it.first.contains(ricercaTesto.trim(), ignoreCase = true) }
+            .sortedBy { it.first.uppercase() }
     }
 
     Column(modifier = Modifier.fillMaxSize()) {

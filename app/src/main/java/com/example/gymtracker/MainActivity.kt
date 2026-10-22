@@ -10,8 +10,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import com.example.gymtracker.ui.LoginScreen
+import com.example.gymtracker.ui.RegistrationScreen
 import com.example.gymtracker.ui.MainDashboard
+import com.example.gymtracker.ui.WelcomeScreen
+import com.example.gymtracker.ui.LoginScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,12 +45,29 @@ fun AppNavigation() {
     val context = LocalContext.current
     val sharedPref = remember { context.getSharedPreferences("GymBuddyPrefs", Context.MODE_PRIVATE) }
     var utenteLoggato by remember { mutableStateOf(sharedPref.getString("NOME_UTENTE", null)) }
+    var schermata by remember { mutableStateOf("benvenuto") }
 
     if (utenteLoggato.isNullOrBlank()) {
-        LoginScreen(onLoginSuccess = { nuovoNome ->
-            sharedPref.edit().putString("NOME_UTENTE", nuovoNome).apply()
-            utenteLoggato = nuovoNome
-        })
+        when (schermata) {
+            "accedi" -> LoginScreen(
+                onLoginSuccess = { nome ->
+                    sharedPref.edit().putString("NOME_UTENTE", nome).apply()
+                    utenteLoggato = nome
+                },
+                onBack = { schermata = "benvenuto" }
+            )
+            "registrati" -> RegistrationScreen(
+                onRegistrationSuccess = { nuovoNome ->
+                    sharedPref.edit().putString("NOME_UTENTE", nuovoNome).apply()
+                    utenteLoggato = nuovoNome
+                },
+                onBack = { schermata = "benvenuto" }
+            )
+            else -> WelcomeScreen(
+                onAccedi = { schermata = "accedi" },
+                onRegistrati = { schermata = "registrati" }
+            )
+        }
     } else {
         MainDashboard(
             nomeUtente = utenteLoggato!!,

@@ -3,6 +3,7 @@ package com.example.gymtracker.ui
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -47,12 +48,17 @@ fun TabDatabaseEsercizi() {
             )
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-        ) {
-            Column(modifier = Modifier.padding(14.dp)) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(26.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(modifier = Modifier.padding(18.dp)) {
                 Text("➕ Aggiungi Nuovo Esercizio", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -61,6 +67,7 @@ fun TabDatabaseEsercizi() {
                     onValueChange = { nomeEsercizio = it },
                     label = { Text("Nome Esercizio") },
                     singleLine = true,
+                    shape = RoundedCornerShape(18.dp),
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -106,57 +113,57 @@ fun TabDatabaseEsercizi() {
                             gruppiSelezionati.add("Petto")
                         }
                     },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    shape = RoundedCornerShape(20.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
                     Text("SALVA NEL POOL", fontWeight = FontWeight.Bold, color = Color.Black)
                 }
             }
         }
+        }
 
-        Spacer(modifier = Modifier.height(14.dp))
+        item {
+            OutlinedTextField(
+                value = ricerca,
+                onValueChange = { ricerca = it },
+                label = { Text("🔍 Cerca tra gli esercizi...") },
+                singleLine = true,
+                shape = RoundedCornerShape(18.dp),
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
 
-        OutlinedTextField(
-            value = ricerca,
-            onValueChange = { ricerca = it },
-            label = { Text("🔍 Cerca tra gli esercizi...") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(eserciziFiltrati) { ex ->
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        items(eserciziFiltrati) { ex ->
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(22.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(ex.nome, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.White)
-                            Text(ex.gruppoMuscolare, fontSize = 11.sp, color = MaterialTheme.colorScheme.secondary)
-                        }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(ex.nome, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.White)
+                        Text(ex.gruppoMuscolare, fontSize = 11.sp, color = MaterialTheme.colorScheme.secondary)
+                    }
 
-                        IconButton(onClick = {
-                            esercizioInModifica = ex
-                            editNome = ex.nome
-                            editGruppi.clear()
-                            val parsed = ex.gruppoMuscolare.split(",").map { it.trim() }.filter { it.isNotEmpty() }
-                            if (parsed.isEmpty()) {
-                                editGruppi.add("Petto")
-                            } else {
-                                editGruppi.addAll(parsed)
-                            }
-                        }) {
-                            Text("✏️", fontSize = 16.sp)
+                    IconButton(onClick = {
+                        esercizioInModifica = ex
+                        editNome = ex.nome
+                        editGruppi.clear()
+                        val parsed = ex.gruppoMuscolare.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                        if (parsed.isEmpty()) {
+                            editGruppi.add("Petto")
+                        } else {
+                            editGruppi.addAll(parsed)
                         }
+                    }) {
+                        Text("✏️", fontSize = 16.sp)
                     }
                 }
             }
@@ -166,6 +173,7 @@ fun TabDatabaseEsercizi() {
     if (esercizioInModifica != null) {
         AlertDialog(
             onDismissRequest = { esercizioInModifica = null },
+            shape = RoundedCornerShape(26.dp),
             confirmButton = {
                 Button(
                     onClick = {
@@ -174,13 +182,14 @@ fun TabDatabaseEsercizi() {
                             esercizioInModifica = null
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                    shape = RoundedCornerShape(18.dp)
                 ) {
                     Text("SALVA MODIFICHE", color = Color.Black, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { esercizioInModifica = null }) {
+                TextButton(onClick = { esercizioInModifica = null }, shape = RoundedCornerShape(14.dp)) {
                     Text("Annulla", color = Color.White)
                 }
             },
@@ -192,6 +201,7 @@ fun TabDatabaseEsercizi() {
                         onValueChange = { editNome = it },
                         label = { Text("Nome Esercizio") },
                         singleLine = true,
+                        shape = RoundedCornerShape(18.dp),
                         modifier = Modifier.fillMaxWidth()
                     )
 

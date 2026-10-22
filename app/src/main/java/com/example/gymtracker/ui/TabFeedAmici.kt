@@ -2,6 +2,8 @@ package com.example.gymtracker.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -23,25 +25,84 @@ import com.example.gymtracker.models.SerieLog
 import com.example.gymtracker.models.TipoSerie
 import com.example.gymtracker.models.getSerieEffettive
 import com.example.gymtracker.models.pesoMax
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
+
+private data class GruppoUtenteFeed(
+    val nickname: String,
+    val periodi: List<Pair<String, List<AllenamentoCompletato>>>
+)
 
 @Composable
-fun TabFeedAmici() {
+fun TabFeedAmici(nomeUtenteLoggato: String) {
     var feed by remember { mutableStateOf(listOf<AllenamentoCompletato>()) }
     var allenamentoSelezionato by remember { mutableStateOf<AllenamentoCompletato?>(null) }
     var inModalitaModifica by remember { mutableStateOf(false) }
+    var filtroPeriodo by remember { mutableStateOf("Tutti") }
+    var erroreOperazione by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         FirebaseManager.ascoltaFeedAllenamenti { feed = it }
     }
 
-    Column {
+    val parserData = remember { SimpleDateFormat("dd/MM/yyyy", Locale.ITALIAN) }
+    val gruppiUtenti = remember(feed, filtroPeriodo) {
+        val adesso = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val inizioFiltro = when (filtroPeriodo) {
+            "Ultimi 7 giorni" -> (adesso.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, -6) }
+            "Ultimi 30 giorni" -> (adesso.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, -29) }
+            else -> null
+        }
+        feed.filter { allenamento ->
+            val data = runCatching { parserData.parse(allenamento.data) }.getOrNull()
+            inizioFiltro == null || (data != null && !data.before(inizioFiltro.time))
+        }.groupBy { it.nomeUtente.trim().ifBlank { "Utente sconosciuto" } }
+            .toSortedMap(String.CASE_INSENSITIVE_ORDER)
+            .map { (nickname, allenamenti) ->
+                val periodi = allenamenti.groupBy { allenamento ->
+                    val data = runCatching { parserData.parse(allenamento.data) }.getOrNull()
+                    data?.let { SimpleDateFormat("yyyy-MM", Locale.ITALIAN).format(it) } ?: "data-sconosciuta"
+                }.toSortedMap(compareByDescending { it })
+                    .map { (chiave, lista) ->
+                        val titoloPeriodo = if (chiave == "data-sconosciuta") "Data non disponibile"
+                        else runCatching {
+                            SimpleDateFormat("MMMM yyyy", Locale.ITALIAN).format(SimpleDateFormat("yyyy-MM", Locale.ITALIAN).parse(chiave)!!)
+                                .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ITALIAN) else it.toString() }
+                        }.getOrDefault(chiave)
+                        titoloPeriodo to lista.sortedByDescending { runCatching { parserData.parse(it.data)?.time }.getOrNull() ?: 0L }
+                    }
+                GruppoUtenteFeed(nickname, periodi)
+            }
+    }
+
+    Column(modifier = Modifier.fillMaxSize()) {
         Text("Feed Allenamenti Gruppo 🔥", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-        Text("Clicca su un allenamento per consultarlo, modificarlo o eliminarlo", fontSize = 12.sp, color = Color.Gray)
+        Text("Gli allenamenti sono raggruppati per utente e mese. Puoi modificare o eliminare solo i tuoi.", fontSize = 12.sp, color = Color.Gray)
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(feed) { log ->
+        Row(modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf("Tutti", "Ultimi 7 giorni", "Ultimi 30 giorni").forEach { filtro ->
+                FilterChip(selected = filtroPeriodo == filtro, onClick = { filtroPeriodo = filtro }, label = { Text(filtro) })
+            }
+        }
+
+        LazyColumn(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (gruppiUtenti.isEmpty()) {
+                item { Text("Nessun allenamento nel periodo selezionato.", color = Color.Gray, modifier = Modifier.padding(16.dp)) }
+            }
+            items(gruppiUtenti, key = { it.nickname.lowercase() }) { gruppo ->
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(gruppo.nickname.uppercase(), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, fontSize = 14.sp, modifier = Modifier.padding(top = 8.dp))
+                    gruppo.periodi.forEach { (periodo, allenamenti) ->
+                        Text(periodo, fontWeight = FontWeight.SemiBold, fontSize = 12.sp, color = MaterialTheme.colorScheme.secondary)
+                        allenamenti.forEach { log ->
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -65,29 +126,53 @@ fun TabFeedAmici() {
                         Text("${log.dettagliEsercizi.size} Esercizi svolti ➔ Tocca per la scheda completa", fontSize = 12.sp, color = MaterialTheme.colorScheme.secondary)
                     }
                 }
+                    }
+                }
             }
         }
+    }
     }
 
     if (allenamentoSelezionato != null) {
         val log = allenamentoSelezionato!!
+        val proprietario = log.nomeUtente.equals(nomeUtenteLoggato, ignoreCase = true)
 
         if (!inModalitaModifica) {
             AlertDialog(
                 onDismissRequest = { allenamentoSelezionato = null },
                 confirmButton = {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TextButton(onClick = { inModalitaModifica = true }) {
-                            Text("✏️ MODIFICA", color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Bold)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (proprietario) {
+                            TextButton(
+                                onClick = { erroreOperazione = null; inModalitaModifica = true },
+                                modifier = Modifier.weight(1f),
+                                contentPadding = PaddingValues(horizontal = 2.dp, vertical = 8.dp)
+                            ) {
+                                Text("Modifica", color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Bold, fontSize = 11.sp, maxLines = 1, softWrap = false)
+                            }
+                            TextButton(
+                                onClick = {
+                                    FirebaseManager.eliminaAllenamentoSeProprietario(log.id, nomeUtenteLoggato) { eliminato ->
+                                        if (eliminato) allenamentoSelezionato = null
+                                        else erroreOperazione = "Non è stato possibile eliminare l'allenamento."
+                                    }
+                                },
+                                modifier = Modifier.weight(1f),
+                                contentPadding = PaddingValues(horizontal = 2.dp, vertical = 8.dp)
+                            ) {
+                                Text("Elimina", color = Color.Red, fontWeight = FontWeight.Bold, fontSize = 11.sp, maxLines = 1, softWrap = false)
+                            }
                         }
-                        TextButton(onClick = {
-                            FirebaseManager.eliminaAllenamentoCompletato(log.id)
-                            allenamentoSelezionato = null
-                        }) {
-                            Text("🗑️ ELIMINA", color = Color.Red, fontWeight = FontWeight.Bold)
-                        }
-                        TextButton(onClick = { allenamentoSelezionato = null }) {
-                            Text("CHIUDI", fontWeight = FontWeight.Bold, color = Color.White)
+                        TextButton(
+                            onClick = { allenamentoSelezionato = null },
+                            modifier = Modifier.weight(1f),
+                            contentPadding = PaddingValues(horizontal = 2.dp, vertical = 8.dp)
+                        ) {
+                            Text("Chiudi", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 11.sp, maxLines = 1, softWrap = false)
                         }
                     }
                 },
@@ -102,6 +187,12 @@ fun TabFeedAmici() {
                         modifier = Modifier.heightIn(max = 400.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
+                        if (!proprietario) {
+                            item { Text("Puoi modificare solo i tuoi allenamenti.", color = Color.Gray, fontSize = 12.sp) }
+                        }
+                        erroreOperazione?.let { messaggio ->
+                            item { Text(messaggio, color = MaterialTheme.colorScheme.error, fontSize = 12.sp) }
+                        }
                         if (log.notaGeneraleSessione.isNotBlank()) {
                             item {
                                 Text("📝 Note generali: ${log.notaGeneraleSessione}", fontSize = 13.sp, color = Color.Yellow)
@@ -204,9 +295,15 @@ fun TabFeedAmici() {
                             notaGeneraleSessione = notaGeneraleModificata.trim(),
                             dettagliEsercizi = listaFinal
                         )
-                        FirebaseManager.salvaOAggiornaAllenamentoEseguito(allenamentoAggiornato)
-                        allenamentoSelezionato = null
-                        inModalitaModifica = false
+                        FirebaseManager.aggiornaAllenamentoSeProprietario(allenamentoAggiornato, nomeUtenteLoggato) { salvato ->
+                            if (salvato) {
+                                allenamentoSelezionato = null
+                                inModalitaModifica = false
+                                erroreOperazione = null
+                            } else {
+                                erroreOperazione = "Modifica non salvata: puoi intervenire solo sui tuoi allenamenti."
+                            }
+                        }
                     }) {
                         Text("SALVA MODIFICHE", fontWeight = FontWeight.Bold, color = Color.Black)
                     }
@@ -219,6 +316,9 @@ fun TabFeedAmici() {
                 title = { Text("Modifica Allenamento", fontWeight = FontWeight.Bold) },
                 text = {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        erroreOperazione?.let { messaggio ->
+                            item { Text(messaggio, color = MaterialTheme.colorScheme.error, fontSize = 12.sp) }
+                        }
                         item {
                             OutlinedTextField(
                                 value = notaGeneraleModificata,

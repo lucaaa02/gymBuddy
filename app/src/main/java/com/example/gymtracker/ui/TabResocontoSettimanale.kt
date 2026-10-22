@@ -2,6 +2,7 @@ package com.example.gymtracker.ui
 
 import android.graphics.Paint as NativePaint
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -31,7 +33,8 @@ data class RecordPersonaleEsercizio(
     val pesoMaxKg: Double,
     val serie: Int,
     val reps: Int,
-    val dateRecord: List<String>
+    val dateRecord: List<String>,
+    val andamentoPesoKg: List<Double>
 )
 
 data class VolumeGiorno(
@@ -50,6 +53,8 @@ fun TabResocontoSettimanale(nomeUtenteLoggato: String) {
     var catalogoEsercizi by remember { mutableStateOf(listOf<EsercizioCatalogo>()) }
 
     var offsetSettimane by remember { mutableStateOf(0) } // 0 = Settimana Corrente, -1 = Prec, ecc.
+    var esercizioGraficoSelezionato by remember { mutableStateOf<String?>(null) }
+    var inputSessioniGrafico by remember { mutableStateOf("10") }
 
     LaunchedEffect(Unit) {
         FirebaseManager.ascoltaFeedAllenamenti { feedAllenamenti = it }
@@ -190,7 +195,22 @@ fun TabResocontoSettimanale(nomeUtenteLoggato: String) {
                 pesoMaxKg = migliore.first.first,
                 serie = migliore.first.third,
                 reps = migliore.first.second,
-                dateRecord = prestazioniRecord.map { it.second }.distinct()
+                dateRecord = prestazioniRecord.map { it.second }.distinct(),
+                andamentoPesoKg = mieiAllenamenti
+                    .mapIndexedNotNull { index, log ->
+                        val dataMillis = runCatching { sdfData.parse(log.data)?.time }.getOrNull() ?: 0L
+                        val pesoSessione = log.dettagliEsercizi
+                            .filter { dettaglio ->
+                                !dettaglio.saltato &&
+                                    (dettaglio.nomeEsercizio.equals(esercizio.nome, ignoreCase = true) ||
+                                        (esercizio.id.isNotBlank() && dettaglio.idEsercizio == esercizio.id))
+                            }
+                            .maxOfOrNull { it.pesoMax() }
+                        if (pesoSessione == null || pesoSessione <= 0.0) null
+                        else Triple(dataMillis, index, pesoSessione)
+                    }
+                    .sortedWith(compareBy<Triple<Long, Int, Double>> { it.first }.thenBy { it.second })
+                    .map { it.third }
             )
         }.sortedBy { it.nomeEsercizio.lowercase() }
     }
@@ -335,6 +355,7 @@ fun TabResocontoSettimanale(nomeUtenteLoggato: String) {
                 Column(modifier = Modifier.padding(14.dp)) {
                     Text("🏅 Record Personali", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = MaterialTheme.colorScheme.primary)
                     Text("Miglior carico per esercizio nel tuo storico", fontSize = 11.sp, color = Color.Gray)
+                    Text("Tocca un esercizio per visualizzare il grafico dei progressi.", fontSize = 11.sp, color = Color.Gray)
                     Spacer(modifier = Modifier.height(10.dp))
 
                     if (recordPersonali.isEmpty()) {
@@ -342,7 +363,16 @@ fun TabResocontoSettimanale(nomeUtenteLoggato: String) {
                     } else {
                         recordPersonali.forEachIndexed { index, record ->
                             Row(
-                                modifier = Modifier.fillMaxWidth().padding(vertical = 7.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        esercizioGraficoSelezionato = if (esercizioGraficoSelezionato == record.nomeEsercizio) {
+                                            null
+                                        } else {
+                                            record.nomeEsercizio
+                                        }
+                                    }
+                                    .padding(vertical = 7.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -363,6 +393,45 @@ fun TabResocontoSettimanale(nomeUtenteLoggato: String) {
                                     fontSize = 14.sp,
                                     color = MaterialTheme.colorScheme.secondary
                                 )
+                            }
+                            if (esercizioGraficoSelezionato == record.nomeEsercizio) {
+                                OutlinedTextField(
+                                    value = inputSessioniGrafico,
+                                    onValueChange = { inputSessioniGrafico = it.filter(Char::isDigit) },
+                                    label = { Text("Sessioni precedenti da mostrare") },
+                                    singleLine = true,
+                                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                                        keyboardType = androidx.compose.ui.text.input.KeyboardType.Number
+                                    ),
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                                val numeroSessioniVisibili = inputSessioniGrafico.toIntOrNull()?.coerceAtLeast(1) ?: 10
+                                val pesiVisibili = record.andamentoPesoKg.takeLast(numeroSessioniVisibili)
+                                val progressoPercentuale = if (pesiVisibili.size < 2 || pesiVisibili.first() == 0.0) {
+                                    null
+                                } else {
+                                    ((pesiVisibili.last() - pesiVisibili.first()) / pesiVisibili.first()) * 100.0
+                                }
+                                Text(
+                                    "Andamento nel tempo • sessione più vecchia a sinistra",
+                                    fontSize = 10.sp,
+                                    color = Color.Gray,
+                                    modifier = Modifier.padding(top = 8.dp)
+                                )
+                                Text(
+                                    text = progressoPercentuale?.let {
+                                        val segno = if (it > 0) "+" else ""
+                                        "Progresso delle sessioni selezionate: $segno${String.format(java.util.Locale.ITALIAN, "%.1f", it)}%"
+                                    } ?: "Progresso: servono almeno due sessioni",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = when {
+                                        progressoPercentuale == null -> Color.Gray
+                                        progressoPercentuale >= 0 -> Color(0xFF4CAF50)
+                                        else -> Color(0xFFF44336)
+                                    }
+                                )
+                                GraficoPuntiPeso(pesiVisibili)
                             }
                             if (index < recordPersonali.lastIndex) HorizontalDivider(color = Color(0xFF333333))
                         }
@@ -471,5 +540,77 @@ private fun GraficoVolumeGiornaliero(dati: List<VolumeGiorno>) {
             )
             paint.textAlign = NativePaint.Align.RIGHT
         }
+    }
+}
+
+@Composable
+private fun GraficoPuntiPeso(pesi: List<Double>) {
+    val colorePunto = MaterialTheme.colorScheme.secondary
+    Canvas(modifier = Modifier.fillMaxWidth().height(180.dp)) {
+        if (pesi.isEmpty()) return@Canvas
+
+        val sinistra = 44.dp.toPx()
+        val destra = 12.dp.toPx()
+        val alto = 12.dp.toPx()
+        val basso = 22.dp.toPx()
+        val larghezzaGrafico = size.width - sinistra - destra
+        val altezzaGrafico = size.height - alto - basso
+        val pesoMinimo = pesi.minOrNull() ?: 0.0
+        val pesoMassimo = pesi.maxOrNull() ?: 1.0
+        val intervalloPeso = (pesoMassimo - pesoMinimo).coerceAtLeast(1.0)
+        val margine = intervalloPeso * 0.1
+        val limiteInferiore = (pesoMinimo - margine).coerceAtLeast(0.0)
+        val limiteSuperiore = pesoMassimo + margine
+        val intervalloVisibile = (limiteSuperiore - limiteInferiore).coerceAtLeast(1.0)
+        val paint = NativePaint(NativePaint.ANTI_ALIAS_FLAG).apply {
+            color = android.graphics.Color.LTGRAY
+            textSize = 9.dp.toPx()
+            textAlign = NativePaint.Align.RIGHT
+        }
+
+        for (divisione in 0..4) {
+            val frazione = divisione / 4f
+            val y = alto + altezzaGrafico * (1f - frazione)
+            drawLine(
+                color = Color(0xFF3A3A3A),
+                start = androidx.compose.ui.geometry.Offset(sinistra, y),
+                end = androidx.compose.ui.geometry.Offset(size.width - destra, y),
+                strokeWidth = 1.dp.toPx()
+            )
+            drawContext.canvas.nativeCanvas.drawText(
+                String.format(
+                    Locale.ITALIAN,
+                    "%.2f",
+                    limiteInferiore + intervalloVisibile * frazione
+                ),
+                sinistra - 5.dp.toPx(),
+                y + paint.textSize / 3f,
+                paint
+            )
+        }
+
+        val spaziX = if (pesi.size == 1) 0f else larghezzaGrafico / (pesi.size - 1)
+        val punti = pesi.mapIndexed { index, peso ->
+            val x = if (pesi.size == 1) sinistra + larghezzaGrafico / 2f else sinistra + spaziX * index
+            val progressoVerticale = ((peso - limiteInferiore) / intervalloVisibile).toFloat().coerceIn(0f, 1f)
+            val y = alto + altezzaGrafico * (1f - progressoVerticale)
+            androidx.compose.ui.geometry.Offset(x, y)
+        }
+        punti.zipWithNext().forEach { (inizio, fine) ->
+            drawLine(
+                color = colorePunto,
+                start = inizio,
+                end = fine,
+                strokeWidth = 2.dp.toPx()
+            )
+        }
+        punti.forEach { punto ->
+            drawCircle(
+                color = colorePunto,
+                radius = 5.dp.toPx(),
+                center = punto
+            )
+        }
+
     }
 }
