@@ -19,9 +19,12 @@ import androidx.compose.ui.unit.sp
 import com.example.gymtracker.data.FirebaseManager
 import com.example.gymtracker.models.AllenamentoCompletato
 import com.example.gymtracker.models.EsercizioCatalogo
+import com.example.gymtracker.models.TipoSerie
+import com.example.gymtracker.models.getSerieEffettive
+import com.example.gymtracker.models.pesoMax
+import com.example.gymtracker.models.tonnellaggioTotale
 import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Date
 import java.util.Locale
 
 data class UtenteClassifica(
@@ -30,10 +33,17 @@ data class UtenteClassifica(
     val tonnellaggioTotale: Double
 )
 
-data class StatGruppoMuscolare(
-    val nomeGruppo: String,
-    val numEserciziEseguiti: Int,
-    val percentuale: Double
+data class RecordEsercizioMese(
+    val nomeEsercizio: String,
+    val pesoKg: Double,
+    val vincitori: List<PrestazioneEsercizioMese>
+)
+
+data class PrestazioneEsercizioMese(
+    val nomeUtente: String,
+    val serie: Int,
+    val reps: Int,
+    val data: String
 )
 
 // PALETTA COLORI DISTINTI PER GLI UTENTI
@@ -53,17 +63,20 @@ val PalettaColoriUtenti = listOf(
 fun TabCommunityDashboard(nomeUtenteLoggato: String) {
     var feedAllenamenti by remember { mutableStateOf(listOf<AllenamentoCompletato>()) }
     var catalogoEsercizi by remember { mutableStateOf(listOf<EsercizioCatalogo>()) }
+    var offsetMesi by remember { mutableStateOf(0) }
 
     LaunchedEffect(Unit) {
-        FirebaseManager.ascoltaFeedAllenamenti { feedAllenamenti = it }
         FirebaseManager.ascoltaFeedAllenamenti { feedAllenamenti = it }
         FirebaseManager.ascoltaCatalogoEsercizi { catalogoEsercizi = it }
     }
 
-    val cal = Calendar.getInstance()
-    val meseCorrente = cal.get(Calendar.MONTH)
-    val annoCorrente = cal.get(Calendar.YEAR)
-    val nomeMese = SimpleDateFormat("MMMM yyyy", Locale.ITALIAN).format(Date()).replaceFirstChar { it.uppercase() }
+    val calendarioSelezionato = remember(offsetMesi) {
+        Calendar.getInstance(Locale.ITALIAN).apply { add(Calendar.MONTH, offsetMesi) }
+    }
+    val meseSelezionato = calendarioSelezionato.get(Calendar.MONTH)
+    val annoSelezionato = calendarioSelezionato.get(Calendar.YEAR)
+    val nomeMese = SimpleDateFormat("MMMM yyyy", Locale.ITALIAN)
+        .format(calendarioSelezionato.time).replaceFirstChar { it.uppercase() }
 
     // 1. ASSEGNAZIONE COLORI AGLI UTENTI
     val mappaColoriUtenti = remember(feedAllenamenti, nomeUtenteLoggato) {
@@ -76,7 +89,7 @@ fun TabCommunityDashboard(nomeUtenteLoggato: String) {
     }
 
     // 2. MAPPA GIORNI CON LISTA UTENTI CHE SI SONO ALLENATI IN QUEL GIORNO
-    val mappaGiorniUtenti = remember(feedAllenamenti, meseCorrente, annoCorrente) {
+    val mappaGiorniUtenti = remember(feedAllenamenti, meseSelezionato, annoSelezionato) {
         val mappa = mutableMapOf<Int, MutableSet<String>>()
         feedAllenamenti.forEach { log ->
             val partiData = log.data.split("/")
@@ -84,7 +97,7 @@ fun TabCommunityDashboard(nomeUtenteLoggato: String) {
                 val g = partiData[0].toIntOrNull() ?: -1
                 val m = (partiData[1].toIntOrNull() ?: 1) - 1
                 val a = partiData[2].toIntOrNull() ?: 2026
-                if (m == meseCorrente && a == annoCorrente && g > 0) {
+                if (m == meseSelezionato && a == annoSelezionato && g > 0) {
                     if (!mappa.containsKey(g)) mappa[g] = mutableSetOf()
                     mappa[g]?.add(log.nomeUtente.uppercase())
                 }
@@ -94,16 +107,16 @@ fun TabCommunityDashboard(nomeUtenteLoggato: String) {
     }
 
     // 3. CLASSIFICA MENSELE
-    val classificaMese = remember(feedAllenamenti, meseCorrente, annoCorrente) {
+    val classificaMese = remember(feedAllenamenti, meseSelezionato, annoSelezionato) {
         val mappaUtenti = mutableMapOf<String, Pair<Int, Double>>()
         feedAllenamenti.forEach { log ->
             val partiData = log.data.split("/")
             if (partiData.size >= 3) {
                 val mese = (partiData[1].toIntOrNull() ?: 1) - 1
                 val anno = partiData[2].toIntOrNull() ?: 2026
-                if (mese == meseCorrente && anno == annoCorrente) {
+                if (mese == meseSelezionato && anno == annoSelezionato) {
                     val nome = log.nomeUtente.uppercase()
-                    val tonnLog = log.dettagliEsercizi.filter { !it.saltato }.sumOf { it.pesoKg * it.serieEseguite * it.repsEseguite }
+                    val tonnLog = log.dettagliEsercizi.filter { !it.saltato }.sumOf { it.tonnellaggioTotale() }
                     val corrente = mappaUtenti[nome] ?: Pair(0, 0.0)
                     mappaUtenti[nome] = Pair(corrente.first + 1, corrente.second + tonnLog)
                 }
@@ -113,32 +126,62 @@ fun TabCommunityDashboard(nomeUtenteLoggato: String) {
             .sortedByDescending { it.numAllenamenti }
     }
 
-    // 4. DISTRIBUZIONE MUSCOLARE UTENTE LOGGATO
-    val distribuzioneMuscolare = remember(feedAllenamenti, catalogoEsercizi, nomeUtenteLoggato) {
-        val mappaGruppi = mutableMapOf<String, Int>()
-        var totaleConteggi = 0
-        feedAllenamenti
-            .filter { it.nomeUtente.equals(nomeUtenteLoggato, ignoreCase = true) }
-            .forEach { log ->
-                log.dettagliEsercizi.filter { !it.saltato }.forEach { exLog ->
-                    val exCat = catalogoEsercizi.firstOrNull { 
-                        it.nome.equals(exLog.nomeEsercizio, ignoreCase = true) || (it.id.isNotBlank() && it.id == exLog.idEsercizio) 
+    val recordPerEsercizio = remember(feedAllenamenti, catalogoEsercizi, meseSelezionato, annoSelezionato) {
+        catalogoEsercizi
+            .sortedBy { it.nome.lowercase() }
+            .map { esercizio ->
+                val candidati = feedAllenamenti
+                    .filter { log ->
+                        val partiData = log.data.split("/")
+                        partiData.size >= 3 &&
+                            (partiData[1].toIntOrNull() ?: 1) - 1 == meseSelezionato &&
+                            (partiData[2].toIntOrNull() ?: 2026) == annoSelezionato
                     }
-                    val gruppo = exCat?.gruppoMuscolare ?: "Altro"
-                    mappaGruppi[gruppo] = (mappaGruppi[gruppo] ?: 0) + 1
-                    totaleConteggi++
-                }
+                    .flatMap { log ->
+                        log.dettagliEsercizi
+                            .filter { dettaglio ->
+                                !dettaglio.saltato &&
+                                    (dettaglio.nomeEsercizio.equals(esercizio.nome, ignoreCase = true) ||
+                                        (esercizio.id.isNotBlank() && dettaglio.idEsercizio == esercizio.id))
+                            }
+                            .mapNotNull { dettaglio ->
+                                val serie = dettaglio.getSerieEffettive()
+                                val pesoMax = dettaglio.pesoMax()
+                                if (pesoMax <= 0) return@mapNotNull null
+                                val repsAlPesoMax = serie.filter { it.pesoKg == pesoMax }.maxOfOrNull { it.reps }
+                                    ?: dettaglio.repsEseguite
+                                PrestazioneEsercizioMese(
+                                    nomeUtente = log.nomeUtente,
+                                    serie = serie.count { it.tipo == TipoSerie.NORMALE },
+                                    reps = repsAlPesoMax,
+                                    data = log.data
+                                ) to pesoMax
+                            }
+                    }
+
+                val miglioriPerUtente = candidati
+                    .groupBy { it.first.nomeUtente.uppercase() }
+                    .values
+                    .mapNotNull { prestazioniUtente ->
+                        prestazioniUtente.maxWithOrNull(
+                            compareBy<Pair<PrestazioneEsercizioMese, Double>> { it.second }
+                                .thenBy { it.first.reps }
+                        )
+                    }
+                val pesoRecord = miglioriPerUtente.maxOfOrNull { it.second }
+                val vincitoriPeso = miglioriPerUtente.filter { it.second == pesoRecord }
+                val repsRecord = vincitoriPeso.maxOfOrNull { it.first.reps }
+                val vincitori = vincitoriPeso.filter { it.first.reps == repsRecord }.map { it.first }
+
+                esercizio.nome to if (pesoRecord == null) null else RecordEsercizioMese(
+                    nomeEsercizio = esercizio.nome,
+                    pesoKg = pesoRecord,
+                    vincitori = vincitori
+                )
             }
-        mappaGruppi.map { 
-            StatGruppoMuscolare(
-                nomeGruppo = it.key,
-                numEserciziEseguiti = it.value,
-                percentuale = if (totaleConteggi == 0) 0.0 else (it.value.toDouble() / totaleConteggi) * 100.0
-            )
-        }.sortedByDescending { it.percentuale }
     }
 
-    val giorniNelMese = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
+    val giorniNelMese = calendarioSelezionato.getActualMaximum(Calendar.DAY_OF_MONTH)
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -147,6 +190,35 @@ fun TabCommunityDashboard(nomeUtenteLoggato: String) {
         item {
             Text("Dashboard Community & Presenze 🏆", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             Text("Mappa cromatica delle presenze di tutti gli utenti e classifica mensile", fontSize = 12.sp, color = Color.Gray)
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(onClick = { offsetMesi-- }) {
+                        Text("← Prec.", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                    }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = if (offsetMesi == 0) "MESE CORRENTE" else "MESE $offsetMesi",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                        Text(nomeMese, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    }
+                    TextButton(onClick = { offsetMesi++ }, enabled = offsetMesi < 0) {
+                        Text("Succ. →", fontWeight = FontWeight.Bold, color = if (offsetMesi < 0) MaterialTheme.colorScheme.primary else Color.Gray)
+                    }
+                }
+            }
         }
 
         // 📅 CALENDARIO CROMATICO GRUPPO
@@ -156,7 +228,7 @@ fun TabCommunityDashboard(nomeUtenteLoggato: String) {
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(modifier = Modifier.padding(14.dp)) {
-                    Text("📅 Mappa Presenze Gruppo - $nomeMese", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = MaterialTheme.colorScheme.primary)
+                    Text("📅 Mappa Presenze Gruppo", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.height(8.dp))
 
                     // LEGENDA COLORI UTENTI
@@ -309,45 +381,58 @@ fun TabCommunityDashboard(nomeUtenteLoggato: String) {
             }
         }
 
-        // 📊 DISTRIBUZIONE GRUPPI MUSCOLARI
+        // 🏋️ RECORD MENSILI PER ESERCIZIO
         item {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(modifier = Modifier.padding(14.dp)) {
-                    Text("📊 Distribuzione Volume Personale", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = MaterialTheme.colorScheme.primary)
-                    Text("Percentuale di serie ed esercizi dedicati a ciascun distretto", fontSize = 11.sp, color = Color.Gray)
+                    Text("🏋️ Record del gruppo per esercizio", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = MaterialTheme.colorScheme.primary)
+                    Text("Peso massimo registrato da ciascun utente nel mese selezionato", fontSize = 11.sp, color = Color.Gray)
+                    Spacer(modifier = Modifier.height(10.dp))
 
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    if (distribuzioneMuscolare.isEmpty()) {
-                        Text("Nessun dato disponibile sul tuo storico esercizi.", fontSize = 12.sp, color = Color.Gray)
+                    if (catalogoEsercizi.isEmpty()) {
+                        Text("Nessun esercizio disponibile nel database.", fontSize = 12.sp, color = Color.Gray)
                     } else {
-                        distribuzioneMuscolare.forEach { stat ->
-                            Column(modifier = Modifier.padding(vertical = 4.dp)) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(stat.nomeGruppo, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color.White)
-                                    Text("${String.format("%.1f", stat.percentuale)}%", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = MaterialTheme.colorScheme.secondary)
+                        recordPerEsercizio.forEachIndexed { index, (nomeEsercizio, record) ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 7.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(nomeEsercizio, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Color.White)
+                                    if (record != null) {
+                                        if (record.vincitori.size > 1) {
+                                            Text("PARI MERITO", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                                        }
+                                        Text(
+                                            record.vincitori.joinToString(" • ") {
+                                                "${it.nomeUtente} (${it.serie} serie × ${it.reps} reps, ${it.data})"
+                                            },
+                                            fontSize = 10.sp,
+                                            color = Color.Gray
+                                        )
+                                    } else {
+                                        Text("Nessun record nel mese", fontSize = 10.sp, color = Color.Gray)
+                                    }
                                 }
-                                Spacer(modifier = Modifier.height(4.dp))
-
-                                LinearProgressIndicator(
-                                    progress = { (stat.percentuale / 100.0).toFloat() },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(8.dp),
-                                    color = MaterialTheme.colorScheme.primary,
-                                    trackColor = Color(0xFF2A2A2A)
+                                Text(
+                                    text = record?.let { "${it.pesoKg} kg" } ?: "—",
+                                    fontWeight = FontWeight.Black,
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.secondary
                                 )
                             }
+                            if (index < recordPerEsercizio.lastIndex) HorizontalDivider(color = Color(0xFF333333))
                         }
                     }
                 }
             }
         }
+
     }
 }

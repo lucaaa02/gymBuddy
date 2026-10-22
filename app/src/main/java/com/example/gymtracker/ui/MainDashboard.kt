@@ -21,6 +21,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gymtracker.models.EsercizioEseguitoLog
 import com.example.gymtracker.models.SchedaAllenamento
+import com.example.gymtracker.models.SerieLog
+import com.example.gymtracker.models.TipoSerie
 import com.example.gymtracker.services.WorkoutNotificationService
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -124,7 +126,7 @@ fun MainDashboard(nomeUtente: String, onLogout: () -> Unit) {
             Pair("Allenati Ora 🏋️‍♂️", "Seleziona e avvia la tua sessione"),
             Pair("Le Mie Schede 📋", "Crea o modifica le tue schede"),
             Pair("Pool Esercizi ➕", "Database condiviso degli esercizi"),
-            Pair("Resoconto Settimanale 📅", "Migliori carichi e volume della settimana"),
+            Pair("Resoconto Personale 📅", "Record, carichi e volume della settimana"),
             Pair("Analisi Esercizi 📊", "Filtra e controlli i pesi degli utenti"),
             Pair("Grafici Progressi 📈", "Percentuali e grafici di crescita"),
             Pair("Community & Presenze 🏆", "Classifica e calendario presenze"),
@@ -339,14 +341,25 @@ fun MainDashboard(nomeUtente: String, onLogout: () -> Unit) {
                                     dettagliEserciziInCorso.clear()
                                     dettagliEserciziInCorso.addAll(
                                         nuovaScheda.esercizi.map { ex ->
+                                            val numSerie = if (ex.serieTarget > 0) ex.serieTarget else 3
+                                            val repsDef = if (ex.repsTarget > 0) ex.repsTarget else 10
+                                            val serieInit = (1..numSerie).map { n ->
+                                                SerieLog(
+                                                    numeroSerie = n,
+                                                    pesoKg = 0.0,
+                                                    reps = repsDef,
+                                                    tipo = TipoSerie.NORMALE
+                                                )
+                                            }
                                             EsercizioEseguitoLog(
                                                 idEsercizio = ex.idEsercizio,
                                                 nomeEsercizio = ex.nomeEsercizio,
-                                                serieEseguite = ex.serieTarget,
-                                                repsEseguite = ex.repsTarget,
+                                                serieEseguite = numSerie,
+                                                repsEseguite = repsDef,
                                                 pesoKg = 0.0,
                                                 noteEsercizio = ex.note,
-                                                saltato = false
+                                                saltato = false,
+                                                serieDettaglio = serieInit
                                             )
                                         }
                                     )

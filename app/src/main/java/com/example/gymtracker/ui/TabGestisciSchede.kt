@@ -53,6 +53,22 @@ fun TabGestisciCreaScheda(
         }
     }
 
+    val poolEserciziRaggruppati = remember(poolEsercizi) {
+        poolEsercizi
+            .sortedWith(
+                compareBy<EsercizioCatalogo> { ex ->
+                    ex.gruppoMuscolare.split(",").firstOrNull()?.trim()?.lowercase() ?: ""
+                }.thenBy { ex ->
+                    ex.gruppoMuscolare.lowercase()
+                }.thenBy { ex ->
+                    ex.nome.lowercase()
+                }
+            )
+            .groupBy { ex ->
+                ex.gruppoMuscolare.split(",").firstOrNull()?.trim()?.ifBlank { "Altro" } ?: "Altro"
+            }
+    }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -103,14 +119,37 @@ fun TabGestisciCreaScheda(
                                     onClick = { dropdownEspanso = false }
                                 )
                             } else {
-                                poolEsercizi.forEach { ex ->
+                                poolEserciziRaggruppati.forEach { (gruppo, lista) ->
                                     DropdownMenuItem(
-                                        text = { Text("${ex.nome} (${ex.gruppoMuscolare})") },
-                                        onClick = {
-                                            esercizioSelezionatoPool = ex
-                                            dropdownEspanso = false
-                                        }
+                                        text = {
+                                            Text(
+                                                text = "── $gruppo ──",
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 11.sp,
+                                                color = MaterialTheme.colorScheme.primary
+                                            )
+                                        },
+                                        onClick = {},
+                                        enabled = false
                                     )
+                                    lista.forEach { ex ->
+                                        DropdownMenuItem(
+                                            text = {
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    Text(ex.nome, color = Color.White, fontWeight = FontWeight.Medium)
+                                                    Text(ex.gruppoMuscolare, color = Color.Gray, fontSize = 10.sp)
+                                                }
+                                            },
+                                            onClick = {
+                                                esercizioSelezionatoPool = ex
+                                                dropdownEspanso = false
+                                            }
+                                        )
+                                    }
                                 }
                             }
                         }

@@ -3,6 +3,7 @@ package com.example.gymtracker.ui
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -183,34 +184,62 @@ fun TabGestisciCreaSchedaSemplice(
         }
     }
 
+    val catalogoRaggruppato = remember(catalogoEsercizi) {
+        catalogoEsercizi
+            .sortedWith(
+                compareBy<EsercizioCatalogo> { ex ->
+                    ex.gruppoMuscolare.split(",").firstOrNull()?.trim()?.lowercase() ?: ""
+                }.thenBy { ex ->
+                    ex.gruppoMuscolare.lowercase()
+                }.thenBy { ex ->
+                    ex.nome.lowercase()
+                }
+            )
+            .groupBy { ex ->
+                ex.gruppoMuscolare.split(",").firstOrNull()?.trim()?.ifBlank { "Altro" } ?: "Altro"
+            }
+    }
+
     if (mostraSelettoreEsercizi) {
         AlertDialog(
             onDismissRequest = { mostraSelettoreEsercizi = false },
             title = { Text("Seleziona Esercizio 🏋️‍♂️") },
             text = {
-                LazyColumn(modifier = Modifier.height(300.dp)) {
-                    itemsIndexed(catalogoEsercizi) { _, ex ->
-                        TextButton(
-                            onClick = {
-                                listaEserciziScheda.add(
-                                    EsercizioInScheda(
-                                        idEsercizio = ex.id,
-                                        nomeEsercizio = ex.nome,
-                                        serieTarget = 3,
-                                        repsTarget = 10,
-                                        note = ""
+                LazyColumn(modifier = Modifier.height(320.dp)) {
+                    catalogoRaggruppato.forEach { (gruppo, esercizi) ->
+                        item {
+                            Text(
+                                text = "── $gruppo ──",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
+                            )
+                        }
+                        items(esercizi) { ex ->
+                            TextButton(
+                                onClick = {
+                                    listaEserciziScheda.add(
+                                        EsercizioInScheda(
+                                            idEsercizio = ex.id,
+                                            nomeEsercizio = ex.nome,
+                                            serieTarget = 3,
+                                            repsTarget = 10,
+                                            note = ""
+                                        )
                                     )
-                                )
-                                mostraSelettoreEsercizi = false
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
+                                    mostraSelettoreEsercizi = false
+                                },
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text(ex.nome, color = Color.White, fontWeight = FontWeight.Bold)
-                                Text(ex.gruppoMuscolare, color = Color.Gray, fontSize = 11.sp)
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(ex.nome, color = Color.White, fontWeight = FontWeight.Bold)
+                                    Text(ex.gruppoMuscolare, color = Color.Gray, fontSize = 11.sp)
+                                }
                             }
                         }
                     }

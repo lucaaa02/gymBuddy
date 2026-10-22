@@ -18,6 +18,8 @@ import com.example.gymtracker.data.FirebaseManager
 import com.example.gymtracker.models.AllenamentoCompletato
 import com.example.gymtracker.models.EsercizioEseguitoLog
 import com.example.gymtracker.models.SchedaAllenamento
+import com.example.gymtracker.models.SerieLog
+import com.example.gymtracker.models.TipoSerie
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -382,6 +384,9 @@ fun SchermataEsecuzioneAllenamento(
                         val serieNum = serieFatteState[index]?.toIntOrNull() ?: ex.serieTarget
                         val repsNum = repsFatteState[index]?.toIntOrNull() ?: ex.repsTarget
 
+                        val serieDett = if (eSaltato) emptyList() else (1..serieNum).map { num ->
+                            SerieLog(numeroSerie = num, pesoKg = pesoNum, reps = repsNum, tipo = TipoSerie.NORMALE)
+                        }
                         EsercizioEseguitoLog(
                             idEsercizio = ex.idEsercizio,
                             nomeEsercizio = ex.nomeEsercizio,
@@ -389,7 +394,8 @@ fun SchermataEsecuzioneAllenamento(
                             repsEseguite = if (eSaltato) 0 else repsNum,
                             serieEseguite = if (eSaltato) 0 else serieNum,
                             noteEsercizio = if (eSaltato) "Saltato" else (noteEsercizioState[index]?.trim() ?: ""),
-                            saltato = eSaltato
+                            saltato = eSaltato,
+                            serieDettaglio = serieDett
                         )
                     }
 

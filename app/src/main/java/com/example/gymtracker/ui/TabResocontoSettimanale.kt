@@ -1,5 +1,7 @@
 package com.example.gymtracker.ui
 
+import android.graphics.Paint as NativePaint
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -8,23 +10,33 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gymtracker.data.FirebaseManager
 import com.example.gymtracker.models.AllenamentoCompletato
 import com.example.gymtracker.models.EsercizioCatalogo
+import com.example.gymtracker.models.TipoSerie
+import com.example.gymtracker.models.getSerieEffettive
+import com.example.gymtracker.models.pesoMax
+import com.example.gymtracker.models.tonnellaggioTotale
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-data class TopEsercizioSettimana(
+data class RecordPersonaleEsercizio(
     val nomeEsercizio: String,
     val pesoMaxKg: Double,
     val serie: Int,
     val reps: Int,
-    val data: String
+    val dateRecord: List<String>
+)
+
+data class VolumeGiorno(
+    val etichetta: String,
+    val volumeKg: Double
 )
 
 data class StatVolumeMuscolo(
@@ -118,35 +130,69 @@ fun TabResocontoSettimanale(nomeUtenteLoggato: String) {
     val diffSessioni = numSessioni - numSessioniPrec
 
     val tonnellaggioTotale = allenamentiSettimana.sumOf { log ->
-        log.dettagliEsercizi.filter { !it.saltato }.sumOf { it.pesoKg * it.serieEseguite * it.repsEseguite }
+        log.dettagliEsercizi.filter { !it.saltato }.sumOf { it.tonnellaggioTotale() }
     }
     val tonnellaggioPrec = allenamentiSettimanaPrec.sumOf { log ->
-        log.dettagliEsercizi.filter { !it.saltato }.sumOf { it.pesoKg * it.serieEseguite * it.repsEseguite }
+        log.dettagliEsercizi.filter { !it.saltato }.sumOf { it.tonnellaggioTotale() }
     }
 
     val diffTonnellaggioPercentuale = if (tonnellaggioPrec == 0.0) 0.0 else ((tonnellaggioTotale - tonnellaggioPrec) / tonnellaggioPrec) * 100.0
 
-    // Top pesi raggiunti per ciascun esercizio nella settimana
-    val listaTopEsercizi = remember(allenamentiSettimana) {
-        val mappaTop = mutableMapOf<String, TopEsercizioSettimana>()
-
-        allenamentiSettimana.forEach { log ->
-            log.dettagliEsercizi.filter { !it.saltato && it.pesoKg > 0 }.forEach { ex ->
-                val chiave = ex.nomeEsercizio.uppercase()
-                val esistente = mappaTop[chiave]
-
-                if (esistente == null || ex.pesoKg > esistente.pesoMaxKg) {
-                    mappaTop[chiave] = TopEsercizioSettimana(
-                        nomeEsercizio = ex.nomeEsercizio,
-                        pesoMaxKg = ex.pesoKg,
-                        serie = ex.serieEseguite,
-                        reps = ex.repsEseguite,
-                        data = log.data
-                    )
-                }
+    val volumiGiornalieri = remember(allenamentiSettimana, inizoSettimanaDate) {
+        val volumiPerData = allenamentiSettimana.groupBy { it.data }.mapValues { (_, logGiorno) ->
+            logGiorno.sumOf { log ->
+                log.dettagliEsercizi.filter { !it.saltato }.sumOf { it.tonnellaggioTotale() }
             }
         }
-        mappaTop.values.sortedByDescending { it.pesoMaxKg }
+        val calendario = Calendar.getInstance(Locale.ITALIAN).apply { time = inizoSettimanaDate }
+        val formatoData = SimpleDateFormat("dd/MM/yyyy", Locale.ITALIAN)
+        val formatoGiorno = SimpleDateFormat("EEE dd", Locale.ITALIAN)
+        (0..6).map {
+            val data = calendario.time
+            VolumeGiorno(
+                etichetta = formatoGiorno.format(data).replaceFirstChar { it.uppercase() },
+                volumeKg = volumiPerData[formatoData.format(data)] ?: 0.0
+            ).also { calendario.add(Calendar.DAY_OF_YEAR, 1) }
+        }
+    }
+
+    val recordPersonali = remember(feedAllenamenti, catalogoEsercizi, nomeUtenteLoggato) {
+        val mieiAllenamenti = feedAllenamenti.filter {
+            it.nomeUtente.equals(nomeUtenteLoggato, ignoreCase = true)
+        }
+        catalogoEsercizi.mapNotNull { esercizio ->
+            val prestazioni = mieiAllenamenti.flatMap { log ->
+                log.dettagliEsercizi
+                    .filter { dettaglio ->
+                        !dettaglio.saltato &&
+                            (dettaglio.nomeEsercizio.equals(esercizio.nome, ignoreCase = true) ||
+                                (esercizio.id.isNotBlank() && dettaglio.idEsercizio == esercizio.id))
+                    }
+                    .mapNotNull { dettaglio ->
+                        val serieEff = dettaglio.getSerieEffettive()
+                        val peso = dettaglio.pesoMax()
+                        val repsAlPesoMax = serieEff.filter { it.pesoKg == peso }.maxOfOrNull { it.reps }
+                            ?: dettaglio.repsEseguite
+                        if (peso <= 0.0 && repsAlPesoMax <= 0) null
+                        else {
+                            val serieNormali = serieEff.filter { it.tipo == TipoSerie.NORMALE }
+                            Pair(Triple(peso, repsAlPesoMax, serieNormali.size), log.data)
+                        }
+                    }
+            }
+            val pesoRecord = prestazioni.maxOfOrNull { it.first.first }
+            val prestazioniPesoRecord = prestazioni.filter { it.first.first == pesoRecord }
+            val repsRecord = prestazioniPesoRecord.maxOfOrNull { it.first.second }
+            val prestazioniRecord = prestazioniPesoRecord.filter { it.first.second == repsRecord }
+            val migliore = prestazioniRecord.firstOrNull() ?: return@mapNotNull null
+            RecordPersonaleEsercizio(
+                nomeEsercizio = esercizio.nome,
+                pesoMaxKg = migliore.first.first,
+                serie = migliore.first.third,
+                reps = migliore.first.second,
+                dateRecord = prestazioniRecord.map { it.second }.distinct()
+            )
+        }.sortedBy { it.nomeEsercizio.lowercase() }
     }
 
     // Distribuzione Volume per Gruppo Muscolare nella settimana
@@ -159,9 +205,13 @@ fun TabResocontoSettimanale(nomeUtenteLoggato: String) {
                 val exCat = catalogoEsercizi.firstOrNull { 
                     it.nome.equals(exLog.nomeEsercizio, ignoreCase = true) || (it.id.isNotBlank() && it.id == exLog.idEsercizio) 
                 }
-                val gruppo = exCat?.gruppoMuscolare ?: "Altro"
-                mappaGruppi[gruppo] = (mappaGruppi[gruppo] ?: 0) + 1
-                totale++
+                val gruppi = exCat?.gruppoMuscolare?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() } ?: listOf("Altro")
+                val listaGruppiEsercizio = if (gruppi.isEmpty()) listOf("Altro") else gruppi
+                val numSerieEff = exLog.getSerieEffettive().size.coerceAtLeast(1)
+                listaGruppiEsercizio.forEach { gruppo ->
+                    mappaGruppi[gruppo] = (mappaGruppi[gruppo] ?: 0) + numSerieEff
+                    totale += numSerieEff
+                }
             }
         }
 
@@ -178,8 +228,8 @@ fun TabResocontoSettimanale(nomeUtenteLoggato: String) {
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         item {
-            Text("Resoconto Settimanale 📅", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            Text("Analisi delle performance e volumi di lavoro della settimana", fontSize = 12.sp, color = Color.Gray)
+            Text("Resoconto Personale 📅", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text("Analisi delle performance e dei volumi di allenamento", fontSize = 12.sp, color = Color.Gray)
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -261,42 +311,60 @@ fun TabResocontoSettimanale(nomeUtenteLoggato: String) {
             }
         }
 
-        // TOP PESI DELLA SETTIMANA
+        // VOLUME GIORNALIERO DELLA SETTIMANA
         item {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(modifier = Modifier.padding(14.dp)) {
-                    Text("🔝 Migliori Carichi della Settimana", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = MaterialTheme.colorScheme.primary)
-                    Text("Il peso più alto sollevato per ciascun esercizio eseguito", fontSize = 11.sp, color = Color.Gray)
+                    Text("📊 Volume giornaliero", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = MaterialTheme.colorScheme.primary)
+                    Text("Volume sollevato ogni giorno della settimana (kg)", fontSize = 11.sp, color = Color.Gray)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    GraficoVolumeGiornaliero(volumiGiornalieri)
+                }
+            }
+        }
 
+        // RECORD PERSONALI STORICI
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(modifier = Modifier.padding(14.dp)) {
+                    Text("🏅 Record Personali", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = MaterialTheme.colorScheme.primary)
+                    Text("Miglior carico per esercizio nel tuo storico", fontSize = 11.sp, color = Color.Gray)
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    if (listaTopEsercizi.isEmpty()) {
-                        Text("Nessun allenamento o esercizio registrato in questa settimana.", fontSize = 12.sp, color = Color.Gray)
+                    if (recordPersonali.isEmpty()) {
+                        Text("Nessun record disponibile: completa un esercizio con peso o ripetizioni registrati.", fontSize = 12.sp, color = Color.Gray)
                     } else {
-                        listaTopEsercizi.forEachIndexed { index, ex ->
+                        recordPersonali.forEachIndexed { index, record ->
                             Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 4.dp),
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 7.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text(ex.nomeEsercizio, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Color.White)
-                                    Text("il ${ex.data} • ${ex.serie}s × ${ex.reps}r", fontSize = 10.sp, color = Color.Gray)
+                                    Text(record.nomeEsercizio, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Color.White)
+                                    Text(
+                                        "${record.serie} serie × ${record.reps} reps • ${record.dateRecord.joinToString()}",
+                                        fontSize = 10.sp,
+                                        color = Color.Gray
+                                    )
+                                    if (record.dateRecord.size > 1) {
+                                        Text("RECORD RIPETUTO (${record.dateRecord.size} volte)", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                                    }
                                 }
-
                                 Text(
-                                    text = "${ex.pesoMaxKg} kg",
+                                    "${record.pesoMaxKg} kg",
                                     fontWeight = FontWeight.Black,
-                                    fontSize = 15.sp,
+                                    fontSize = 14.sp,
                                     color = MaterialTheme.colorScheme.secondary
                                 )
                             }
-                            if (index < listaTopEsercizi.size - 1) HorizontalDivider(color = Color(0xFF333333))
+                            if (index < recordPersonali.lastIndex) HorizontalDivider(color = Color(0xFF333333))
                         }
                     }
                 }
@@ -342,6 +410,66 @@ fun TabResocontoSettimanale(nomeUtenteLoggato: String) {
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun GraficoVolumeGiornaliero(dati: List<VolumeGiorno>) {
+    val coloreBarra = MaterialTheme.colorScheme.primary
+    Canvas(modifier = Modifier.fillMaxWidth().height(190.dp)) {
+        if (dati.isEmpty()) return@Canvas
+
+        val sinistra = 48.dp.toPx()
+        val destra = 8.dp.toPx()
+        val alto = 12.dp.toPx()
+        val basso = 28.dp.toPx()
+        val larghezzaGrafico = size.width - sinistra - destra
+        val altezzaGrafico = size.height - alto - basso
+        val massimoVolume = dati.maxOfOrNull { it.volumeKg }?.coerceAtLeast(1.0) ?: 1.0
+        val larghezzaFascia = larghezzaGrafico / dati.size
+
+        val paint = NativePaint(NativePaint.ANTI_ALIAS_FLAG).apply {
+            color = android.graphics.Color.LTGRAY
+            textSize = 10.dp.toPx()
+            textAlign = NativePaint.Align.RIGHT
+        }
+
+        for (divisione in 0..4) {
+            val frazione = divisione / 4f
+            val y = alto + altezzaGrafico * (1f - frazione)
+            drawLine(
+                color = Color(0xFF3A3A3A),
+                start = androidx.compose.ui.geometry.Offset(sinistra, y),
+                end = androidx.compose.ui.geometry.Offset(size.width - destra, y),
+                strokeWidth = 1.dp.toPx()
+            )
+            val valore = massimoVolume * frazione
+            drawContext.canvas.nativeCanvas.drawText(
+                valore.toInt().toString(),
+                sinistra - 6.dp.toPx(),
+                y + paint.textSize / 3f,
+                paint
+            )
+        }
+
+        dati.forEachIndexed { index, giorno ->
+            val centroX = sinistra + larghezzaFascia * (index + 0.5f)
+            val altezzaBarra = (giorno.volumeKg / massimoVolume * altezzaGrafico).toFloat()
+            val larghezzaBarra = larghezzaFascia * 0.56f
+            drawRect(
+                color = coloreBarra,
+                topLeft = androidx.compose.ui.geometry.Offset(centroX - larghezzaBarra / 2f, alto + altezzaGrafico - altezzaBarra),
+                size = androidx.compose.ui.geometry.Size(larghezzaBarra, altezzaBarra)
+            )
+            paint.textAlign = NativePaint.Align.CENTER
+            drawContext.canvas.nativeCanvas.drawText(
+                giorno.etichetta,
+                centroX,
+                size.height - 6.dp.toPx(),
+                paint
+            )
+            paint.textAlign = NativePaint.Align.RIGHT
         }
     }
 }

@@ -20,6 +20,12 @@ import androidx.compose.ui.unit.sp
 import com.example.gymtracker.data.FirebaseManager
 import com.example.gymtracker.models.AllenamentoCompletato
 import com.example.gymtracker.models.EsercizioCatalogo
+import com.example.gymtracker.models.SerieLog
+import com.example.gymtracker.models.TipoSerie
+import com.example.gymtracker.models.getSerieEffettive
+import com.example.gymtracker.models.pesoMax
+import com.example.gymtracker.models.tonnellaggioTotale
+import com.example.gymtracker.models.max1RMStimato
 import kotlin.math.roundToInt
 
 data class PontoGrafico(
@@ -28,7 +34,8 @@ data class PontoGrafico(
     val serie: Int,
     val reps: Int,
     val volumeTotale: Double,
-    val unRMStimato: Double
+    val unRMStimato: Double,
+    val serieDettaglio: List<SerieLog> = emptyList()
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,19 +73,24 @@ fun TabGraficiProgressi(nomeUtenteLoggato: String) {
                 .reversed()
                 .forEach { sessione ->
                     sessione.dettagliEsercizi.forEach { ex ->
+                        val pMax = ex.pesoMax()
+                        val vol = ex.tonnellaggioTotale()
+                        val rEff = ex.getSerieEffettive()
+                        val serieNormali = rEff.filter { it.tipo == TipoSerie.NORMALE }
                         if ((ex.nomeEsercizio.equals(esercizioSelezionato!!.nome, ignoreCase = true) ||
-                            (ex.idEsercizio.isNotBlank() && ex.idEsercizio == esercizioSelezionato!!.id)) && !ex.saltato && ex.pesoKg > 0
+                            (ex.idEsercizio.isNotBlank() && ex.idEsercizio == esercizioSelezionato!!.id)) && !ex.saltato && (pMax > 0 || vol > 0)
                         ) {
-                            val volume = ex.pesoKg * ex.serieEseguite * ex.repsEseguite
-                            val epley1RM = ex.pesoKg * (1.0 + (ex.repsEseguite / 30.0))
+                            val max1RM = ex.max1RMStimato()
                             punti.add(
                                 PontoGrafico(
                                     data = sessione.data,
-                                    pesoKg = ex.pesoKg,
-                                    serie = ex.serieEseguite,
-                                    reps = ex.repsEseguite,
-                                    volumeTotale = volume,
-                                    unRMStimato = epley1RM
+                                    pesoKg = pMax,
+                                    serie = serieNormali.size,
+                                    reps = serieNormali.takeIf { it.isNotEmpty() }
+                                        ?.let { it.sumOf { serie -> serie.reps } / it.size } ?: 0,
+                                    volumeTotale = vol,
+                                    unRMStimato = max1RM,
+                                    serieDettaglio = rEff
                                 )
                             )
                         }
@@ -164,7 +176,16 @@ fun TabGraficiProgressi(nomeUtenteLoggato: String) {
                     expanded = menuEserciziEspanso,
                     onDismissRequest = { menuEserciziEspanso = false }
                 ) {
-                    catalogoEsercizi.forEach { ex ->
+                    val catalogoOrdinato = catalogoEsercizi.sortedWith(
+                        compareBy<EsercizioCatalogo> { ex ->
+                            ex.gruppoMuscolare.split(",").firstOrNull()?.trim()?.lowercase() ?: ""
+                        }.thenBy { ex ->
+                            ex.gruppoMuscolare.lowercase()
+                        }.thenBy { ex ->
+                            ex.nome.lowercase()
+                        }
+                    )
+                    catalogoOrdinato.forEach { ex ->
                         DropdownMenuItem(
                             text = { Text("${ex.nome} (${ex.gruppoMuscolare})") },
                             onClick = {
@@ -276,16 +297,27 @@ fun TabGraficiProgressi(nomeUtenteLoggato: String) {
                         Spacer(modifier = Modifier.height(6.dp))
 
                         puntiFiltrati.reversed().forEach { pt ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 4.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(pt.data, fontSize = 12.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
-                                Text("${pt.pesoKg} kg (${pt.serie}s × ${pt.reps}r)", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color.White)
-                                Text("Vol: ${pt.volumeTotale.toInt()} kg", fontSize = 11.sp, color = MaterialTheme.colorScheme.secondary)
+                            Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(pt.data, fontSize = 12.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
+                                    Text("Max: ${pt.pesoKg} kg (${pt.serie}s)", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color.White)
+                                    Text("Vol: ${pt.volumeTotale.toInt()} kg", fontSize = 11.sp, color = MaterialTheme.colorScheme.secondary)
+                                }
+                                if (pt.serieDettaglio.isNotEmpty()) {
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = pt.serieDettaglio.joinToString(", ") { s ->
+                                            val ic = TipoSerie.icona(s.tipo)
+                                            "$ic #${s.numeroSerie}: ${s.pesoKg}k×${s.reps}"
+                                        },
+                                        fontSize = 10.sp,
+                                        color = Color.LightGray
+                                    )
+                                }
                             }
                             HorizontalDivider(color = Color(0xFF333333))
                         }

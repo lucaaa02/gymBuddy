@@ -41,11 +41,21 @@ object FirebaseManager {
         ref.setValue(nuovoEx)
     }
 
+    fun aggiungiEsercizioCatalogo(nome: String, gruppi: List<String>) {
+        val gruppoStr = if (gruppi.isEmpty()) "Altro" else gruppi.joinToString(", ")
+        aggiungiEsercizioCatalogo(nome, gruppoStr)
+    }
+
     fun aggiornaEsercizioCatalogo(id: String, nuovoNome: String, nuovoGruppo: String) {
         if (id.isNotBlank()) {
             val ref = db.getReference(NODO_ESERCIZI).child(id)
             ref.setValue(EsercizioCatalogo(id = id, nome = nuovoNome, gruppoMuscolare = nuovoGruppo))
         }
+    }
+
+    fun aggiornaEsercizioCatalogo(id: String, nuovoNome: String, nuoviGruppi: List<String>) {
+        val gruppoStr = if (nuoviGruppi.isEmpty()) "Altro" else nuoviGruppi.joinToString(", ")
+        aggiornaEsercizioCatalogo(id, nuovoNome, gruppoStr)
     }
 
     fun ascoltaMieSchede(nomeUtente: String, onDataChanged: (List<SchedaAllenamento>) -> Unit) {

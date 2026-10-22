@@ -3,9 +3,11 @@ package com.example.gymtracker.ui
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -25,6 +27,9 @@ import com.example.gymtracker.data.FirebaseManager
 import com.example.gymtracker.models.AllenamentoCompletato
 import com.example.gymtracker.models.EsercizioEseguitoLog
 import com.example.gymtracker.models.SchedaAllenamento
+import com.example.gymtracker.models.SerieLog
+import com.example.gymtracker.models.TipoSerie
+import com.example.gymtracker.models.getSerieEffettive
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -47,9 +52,11 @@ fun SchermataEsecuzioneAllenamento(
     onTerminato: () -> Unit
 ) {
     val context = LocalContext.current
-    val pesiTestoMap = remember { mutableStateMapOf<Int, String>() }
+    val pesiSetMap = remember { mutableStateMapOf<String, String>() }
+    val repsSetMap = remember { mutableStateMapOf<String, String>() }
 
     var ultimiLogMap by remember { mutableStateOf<Map<String, EsercizioEseguitoLog>>(emptyMap()) }
+    var serieInizializzateDaStorico by remember { mutableStateOf(false) }
 
     var mostraCustomTimerDialog by remember { mutableStateOf(false) }
     var inputSecondiCustom by remember { mutableStateOf("90") }
@@ -83,6 +90,38 @@ fun SchermataEsecuzioneAllenamento(
                 }
             }
             ultimiLogMap = mappaRisultati
+        }
+    }
+
+    LaunchedEffect(ultimiLogMap) {
+        if (!serieInizializzateDaStorico && ultimiLogMap.isNotEmpty()) {
+            dettagliList.indices.forEach { index ->
+                val item = dettagliList[index]
+                val seriePrecedenti = ultimiLogMap[item.nomeEsercizio.lowercase()]?.getSerieEffettive().orEmpty()
+                if (seriePrecedenti.isNotEmpty()) {
+                    val serieAttuali = item.getSerieEffettive()
+                    val numeroSerie = maxOf(serieAttuali.size, seriePrecedenti.size)
+                    val serieAggiornate = (0 until numeroSerie).map { serieIndex ->
+                        val attuale = serieAttuali.getOrNull(serieIndex)
+                        val precedente = seriePrecedenti.getOrNull(serieIndex)
+                        when {
+                            attuale != null && precedente != null -> attuale.copy(
+                                numeroSerie = serieIndex + 1,
+                                tipo = precedente.tipo
+                            )
+                            attuale != null -> attuale.copy(numeroSerie = serieIndex + 1)
+                            precedente != null -> precedente.copy(
+                                numeroSerie = serieIndex + 1,
+                                pesoKg = 0.0,
+                                reps = 0
+                            )
+                            else -> SerieLog(numeroSerie = serieIndex + 1)
+                        }
+                    }
+                    dettagliList[index] = item.copy(serieDettaglio = serieAggiornate)
+                }
+            }
+            serieInizializzateDaStorico = true
         }
     }
 
@@ -204,36 +243,24 @@ fun SchermataEsecuzioneAllenamento(
                                 labelColor = MaterialTheme.colorScheme.secondary
                             )
                         )
+
                     }
+                }
+
+                TextButton(
+                    onClick = { mostraDialogData = true },
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Text(
+                        text = "📅 Data: $dataSelezionataStr",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(14.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "🏋️‍♂️ Esecuzione: ${scheda.titoloScheda}",
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.primary
-            )
-
-            // PULSANTE PER SELEZIONARE LA DATA DI ESECUZIONE
-            TextButton(onClick = { mostraDialogData = true }) {
-                Text(
-                    text = "📅 Data: $dataSelezionataStr",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.secondary
-                )
-            }
-        }
-        
         Spacer(modifier = Modifier.height(8.dp))
 
         LazyColumn(
@@ -276,23 +303,49 @@ fun SchermataEsecuzioneAllenamento(
 
                         if (ultimoLog != null) {
                             Spacer(modifier = Modifier.height(6.dp))
-                            
+                            val serieUltimo = ultimoLog.getSerieEffettive()
                             Surface(
                                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
                                 shape = RoundedCornerShape(10.dp)
                             ) {
-                                Row(
+                                Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(horizontal = 10.dp, vertical = 6.dp),
-                                    verticalAlignment = Alignment.CenterVertically
+                                        .padding(horizontal = 10.dp, vertical = 6.dp)
                                 ) {
                                     Text(
-                                        text = "📌 Ultima volta: ${ultimoLog.pesoKg} Kg x ${ultimoLog.serieEseguite}s x ${ultimoLog.repsEseguite}r",
+                                        text = "📌 Ultima volta svolto (${serieUltimo.size} serie):",
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.primary
                                     )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Row(
+                                        modifier = Modifier.horizontalScroll(rememberScrollState()),
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        serieUltimo.forEach { s ->
+                                            Surface(
+                                                color = Color(0xFF262626),
+                                                shape = RoundedCornerShape(6.dp),
+                                                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF3E3E3E))
+                                            ) {
+                                                Row(
+                                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    Text(TipoSerie.icona(s.tipo), fontSize = 10.sp)
+                                                    Spacer(modifier = Modifier.width(3.dp))
+                                                    Text(
+                                                        text = "#${s.numeroSerie}: ${s.pesoKg}kg × ${s.reps}",
+                                                        fontSize = 11.sp,
+                                                        fontWeight = FontWeight.SemiBold,
+                                                        color = Color.White
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
 
@@ -325,49 +378,237 @@ fun SchermataEsecuzioneAllenamento(
                         }
 
                         if (!item.saltato) {
+                            val serieList = if (item.serieDettaglio.isNotEmpty()) {
+                                item.serieDettaglio
+                            } else {
+                                val count = if (item.serieEseguite > 0) item.serieEseguite else 3
+                                val defaultReps = if (item.repsEseguite > 0) item.repsEseguite else 10
+                                val initList = (1..count).map { num ->
+                                    SerieLog(numeroSerie = num, pesoKg = item.pesoKg, reps = defaultReps, tipo = TipoSerie.NORMALE)
+                                }
+                                dettagliList[index] = item.copy(serieDettaglio = initList)
+                                initList
+                            }
+
                             Spacer(modifier = Modifier.height(10.dp))
+
+                            // Intestazione tabella serie
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 4.dp, vertical = 2.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                OutlinedTextField(
-                                    value = pesiTestoMap[index] ?: if (item.pesoKg == 0.0) "" else item.pesoKg.toString(),
-                                    onValueChange = { text ->
-                                        pesiTestoMap[index] = text
-                                        val pesoParsed = text.replace(',', '.').toDoubleOrNull() ?: 0.0
-                                        dettagliList[index] = item.copy(pesoKg = pesoParsed)
-                                    },
-                                    label = { Text("Peso (Kg)") },
-                                    singleLine = true,
-                                    shape = RoundedCornerShape(14.dp),
-                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                    modifier = Modifier.weight(1f)
-                                )
+                                Text("SET", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.Gray, modifier = Modifier.width(36.dp))
+                                Text("TIPO", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.Gray, modifier = Modifier.weight(1.3f))
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("KG", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.Gray, modifier = Modifier.weight(1f))
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("REPS", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.Gray, modifier = Modifier.weight(1f))
+                                Spacer(modifier = Modifier.width(36.dp))
+                            }
 
-                                OutlinedTextField(
-                                    value = if (item.serieEseguite == 0) "" else item.serieEseguite.toString(),
-                                    onValueChange = { text ->
-                                        val s = text.toIntOrNull() ?: 0
-                                        dettagliList[index] = item.copy(serieEseguite = s)
-                                    },
-                                    label = { Text("Serie") },
-                                    singleLine = true,
-                                    shape = RoundedCornerShape(14.dp),
-                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                    modifier = Modifier.weight(1f)
-                                )
+                            // Righe delle serie
+                            serieList.forEachIndexed { sIdx, serieItem ->
+                                val setKey = "${index}_$sIdx"
+                                val seriePrecedente = ultimoLog?.getSerieEffettive()?.getOrNull(sIdx)
+                                var menuTipoEspanso by remember { mutableStateOf(false) }
 
-                                OutlinedTextField(
-                                    value = if (item.repsEseguite == 0) "" else item.repsEseguite.toString(),
-                                    onValueChange = { text ->
-                                        val r = text.toIntOrNull() ?: 0
-                                        dettagliList[index] = item.copy(repsEseguite = r)
-                                    },
-                                    label = { Text("Reps") },
-                                    singleLine = true,
-                                    shape = RoundedCornerShape(14.dp),
-                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                    modifier = Modifier.weight(1f)
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 3.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    // Numero serie badge
+                                    Box(
+                                        modifier = Modifier
+                                            .size(36.dp)
+                                            .background(Color(0xFF2A2A2A), shape = CircleShape),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "${sIdx + 1}",
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.width(4.dp))
+
+                                    // Selettore Tipo Serie con Dropdown
+                                    Box(modifier = Modifier.weight(1.3f)) {
+                                        Surface(
+                                            onClick = { menuTipoEspanso = true },
+                                            shape = RoundedCornerShape(10.dp),
+                                            color = when (serieItem.tipo) {
+                                                TipoSerie.RISCALDAMENTO -> Color(0xFFE65100).copy(alpha = 0.25f)
+                                                TipoSerie.BACKOFF -> Color(0xFF0288D1).copy(alpha = 0.25f)
+                                                TipoSerie.SUPERSET -> Color(0xFF7B1FA2).copy(alpha = 0.25f)
+                                                else -> Color(0xFF2E2E2E)
+                                            },
+                                            border = androidx.compose.foundation.BorderStroke(
+                                                1.dp,
+                                                when (serieItem.tipo) {
+                                                    TipoSerie.RISCALDAMENTO -> Color(0xFFFF9800)
+                                                    TipoSerie.BACKOFF -> Color(0xFF29B6F6)
+                                                    TipoSerie.SUPERSET -> Color(0xFFBA68C8)
+                                                    else -> Color(0xFF555555)
+                                                }
+                                            )
+                                        ) {
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(horizontal = 6.dp, vertical = 9.dp),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text(
+                                                    text = "${TipoSerie.icona(serieItem.tipo)} ${TipoSerie.etichettaCorta(serieItem.tipo)}",
+                                                    fontSize = 11.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = Color.White
+                                                )
+                                                Text("▾", fontSize = 10.sp, color = Color.Gray)
+                                            }
+                                        }
+
+                                        DropdownMenu(
+                                            expanded = menuTipoEspanso,
+                                            onDismissRequest = { menuTipoEspanso = false }
+                                        ) {
+                                            TipoSerie.TUTTI.forEach { tipoOpz ->
+                                                DropdownMenuItem(
+                                                    text = {
+                                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                                            Text(TipoSerie.icona(tipoOpz), fontSize = 14.sp)
+                                                            Spacer(modifier = Modifier.width(8.dp))
+                                                            Text(tipoOpz, fontWeight = if (serieItem.tipo == tipoOpz) FontWeight.Bold else FontWeight.Normal)
+                                                        }
+                                                    },
+                                                    onClick = {
+                                                        val nuoveSerie = serieList.toMutableList()
+                                                        nuoveSerie[sIdx] = serieItem.copy(tipo = tipoOpz)
+                                                        dettagliList[index] = item.copy(serieDettaglio = nuoveSerie)
+                                                        menuTipoEspanso = false
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    Spacer(modifier = Modifier.width(6.dp))
+
+                                    // Campo KG
+                                    OutlinedTextField(
+                                        value = pesiSetMap[setKey] ?: if (serieItem.pesoKg == 0.0) "" else serieItem.pesoKg.toString(),
+                                        onValueChange = { text ->
+                                            pesiSetMap[setKey] = text
+                                            val pesoParsed = text.replace(',', '.').toDoubleOrNull() ?: 0.0
+                                            val nuoveSerie = serieList.toMutableList()
+                                            nuoveSerie[sIdx] = serieItem.copy(pesoKg = pesoParsed)
+                                            dettagliList[index] = item.copy(serieDettaglio = nuoveSerie)
+                                        },
+                                        placeholder = {
+                                            Text(
+                                                seriePrecedente?.pesoKg?.toString() ?: "0",
+                                                fontSize = 12.sp,
+                                                color = Color.Gray
+                                            )
+                                        },
+                                        singleLine = true,
+                                        shape = RoundedCornerShape(10.dp),
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                            unfocusedBorderColor = Color(0xFF444444)
+                                        ),
+                                        modifier = Modifier.weight(1f)
+                                    )
+
+                                    Spacer(modifier = Modifier.width(6.dp))
+
+                                    // Campo REPS
+                                    OutlinedTextField(
+                                        value = repsSetMap[setKey] ?: if (serieItem.reps == 0) "" else serieItem.reps.toString(),
+                                        onValueChange = { text ->
+                                            repsSetMap[setKey] = text
+                                            val repsParsed = text.toIntOrNull() ?: 0
+                                            val nuoveSerie = serieList.toMutableList()
+                                            nuoveSerie[sIdx] = serieItem.copy(reps = repsParsed)
+                                            dettagliList[index] = item.copy(serieDettaglio = nuoveSerie)
+                                        },
+                                        placeholder = {
+                                            Text(
+                                                seriePrecedente?.reps?.toString() ?: "0",
+                                                fontSize = 12.sp,
+                                                color = Color.Gray
+                                            )
+                                        },
+                                        singleLine = true,
+                                        shape = RoundedCornerShape(10.dp),
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedBorderColor = MaterialTheme.colorScheme.secondary,
+                                            unfocusedBorderColor = Color(0xFF444444)
+                                        ),
+                                        modifier = Modifier.weight(1f)
+                                    )
+
+                                    // Pulsante elimina serie
+                                    IconButton(
+                                        onClick = {
+                                            if (serieList.size > 1) {
+                                                val nuoveSerie = serieList.toMutableList()
+                                                nuoveSerie.removeAt(sIdx)
+                                                val riordinate = nuoveSerie.mapIndexed { i, s -> s.copy(numeroSerie = i + 1) }
+                                                dettagliList[index] = item.copy(serieDettaglio = riordinate)
+                                                pesiSetMap.remove(setKey)
+                                                repsSetMap.remove(setKey)
+                                            }
+                                        },
+                                        enabled = serieList.size > 1,
+                                        modifier = Modifier.size(36.dp)
+                                    ) {
+                                        Text(
+                                            text = "🗑️",
+                                            fontSize = 14.sp,
+                                            color = if (serieList.size > 1) Color.Red else Color(0xFF444444)
+                                        )
+                                    }
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            // Pulsante Aggiungi Serie
+                            Button(
+                                onClick = {
+                                    val nuoveSerie = serieList.toMutableList()
+                                    val ultima = serieList.lastOrNull()
+                                    val nextNum = serieList.size + 1
+                                    nuoveSerie.add(
+                                        SerieLog(
+                                            numeroSerie = nextNum,
+                                            pesoKg = ultima?.pesoKg ?: 0.0,
+                                            reps = ultima?.reps ?: 10,
+                                            tipo = if (ultima?.tipo == TipoSerie.RISCALDAMENTO) TipoSerie.NORMALE else (ultima?.tipo ?: TipoSerie.NORMALE)
+                                        )
+                                    )
+                                    dettagliList[index] = item.copy(serieDettaglio = nuoveSerie)
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(10.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
+                                contentPadding = PaddingValues(vertical = 6.dp)
+                            ) {
+                                Text(
+                                    text = "+ AGGIUNGI SERIE",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
                                 )
                             }
 
@@ -413,14 +654,35 @@ fun SchermataEsecuzioneAllenamento(
 
         Button(
             onClick = {
-                val nonIncompilati = dettagliList.filter { !it.saltato && (it.pesoKg <= 0.0 || it.serieEseguite <= 0 || it.repsEseguite <= 0) }
+                val nonIncompilati = dettagliList.filter { ex ->
+                    if (ex.saltato) return@filter false
+                    val serie = ex.getSerieEffettive()
+                    if (serie.isEmpty()) return@filter true
+                    serie.any { it.reps <= 0 }
+                }
                 if (nonIncompilati.isNotEmpty()) {
                     Toast.makeText(
                         context,
-                        "Compila tutti i pesi, serie e reps per gli esercizi svolti oppure segna 'Non fatto'",
+                        "Compila le ripetizioni per tutte le serie svolte oppure segna 'Non fatto'",
                         Toast.LENGTH_LONG
                     ).show()
                     return@Button
+                }
+
+                val listaFinale = dettagliList.map { ex ->
+                    if (ex.saltato) {
+                        ex.copy(pesoKg = 0.0, serieEseguite = 0, repsEseguite = 0, serieDettaglio = emptyList())
+                    } else {
+                        val serie = ex.getSerieEffettive()
+                        val pesoMax = serie.maxOfOrNull { it.pesoKg } ?: 0.0
+                        val repsMedie = if (serie.isNotEmpty()) (serie.sumOf { it.reps } / serie.size) else 0
+                        ex.copy(
+                            pesoKg = pesoMax,
+                            serieEseguite = serie.size,
+                            repsEseguite = repsMedie,
+                            serieDettaglio = serie
+                        )
+                    }
                 }
 
                 val allenamentoCompletato = AllenamentoCompletato(
@@ -429,7 +691,7 @@ fun SchermataEsecuzioneAllenamento(
                     titoloScheda = scheda.titoloScheda,
                     data = dataSelezionataStr,
                     durataSecondi = secondiTrascorsi,
-                    dettagliEsercizi = dettagliList.toList()
+                    dettagliEsercizi = listaFinale
                 )
                 FirebaseManager.salvaAllenamentoEseguito(allenamentoCompletato)
                 onTerminato()

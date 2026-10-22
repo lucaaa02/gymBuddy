@@ -14,17 +14,17 @@ import androidx.compose.ui.unit.sp
 import com.example.gymtracker.data.FirebaseManager
 import com.example.gymtracker.models.EsercizioCatalogo
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun TabDatabaseEsercizi() {
     var catalogo by remember { mutableStateOf(listOf<EsercizioCatalogo>()) }
     var nomeEsercizio by remember { mutableStateOf("") }
-    var gruppoSelezionato by remember { mutableStateOf("Petto") }
+    val gruppiSelezionati = remember { mutableStateListOf("Petto") }
     var ricerca by remember { mutableStateOf("") }
 
     var esercizioInModifica by remember { mutableStateOf<EsercizioCatalogo?>(null) }
     var editNome by remember { mutableStateOf("") }
-    var editGruppo by remember { mutableStateOf("Petto") }
+    val editGruppi = remember { mutableStateListOf<String>() }
 
     // Elenco completo con Gambe, Quadricipiti, Femorali e Polpacci
     val listaGruppi = listOf("Petto", "Dorso", "Gambe", "Quadricipiti", "Femorali", "Polpacci", "Spalle", "Bicipiti", "Tricipiti", "Addome", "Multiarticolari", "Altro")
@@ -34,7 +34,17 @@ fun TabDatabaseEsercizi() {
     }
 
     val eserciziFiltrati = remember(catalogo, ricerca) {
-        catalogo.filter { it.nome.contains(ricerca.trim(), ignoreCase = true) || it.gruppoMuscolare.contains(ricerca.trim(), ignoreCase = true) }
+        catalogo
+            .filter { it.nome.contains(ricerca.trim(), ignoreCase = true) || it.gruppoMuscolare.contains(ricerca.trim(), ignoreCase = true) }
+            .sortedWith(
+                compareBy<EsercizioCatalogo> { ex ->
+                    ex.gruppoMuscolare.split(",").firstOrNull()?.trim()?.lowercase() ?: ""
+                }.thenBy { ex ->
+                    ex.gruppoMuscolare.lowercase()
+                }.thenBy { ex ->
+                    ex.nome.lowercase()
+                }
+            )
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -56,13 +66,31 @@ fun TabDatabaseEsercizi() {
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Text("Gruppo Muscolare:", fontSize = 11.sp, color = Color.Gray)
-                ScrollableTabRow(selectedTabIndex = listaGruppi.indexOf(gruppoSelezionato).coerceAtLeast(0), edgePadding = 0.dp) {
+                Text("Distretti Muscolari (seleziona uno o più):", fontSize = 11.sp, color = Color.Gray)
+                Spacer(modifier = Modifier.height(4.dp))
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     listaGruppi.forEach { g ->
-                        Tab(
-                            selected = gruppoSelezionato == g,
-                            onClick = { gruppoSelezionato = g },
-                            text = { Text(g, fontSize = 12.sp) }
+                        val selezionato = gruppiSelezionati.contains(g)
+                        FilterChip(
+                            selected = selezionato,
+                            onClick = {
+                                if (selezionato) {
+                                    if (gruppiSelezionati.size > 1) {
+                                        gruppiSelezionati.remove(g)
+                                    }
+                                } else {
+                                    gruppiSelezionati.add(g)
+                                }
+                            },
+                            label = { Text(g, fontSize = 12.sp) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                selectedLabelColor = Color.Black
+                            )
                         )
                     }
                 }
@@ -71,9 +99,11 @@ fun TabDatabaseEsercizi() {
 
                 Button(
                     onClick = {
-                        if (nomeEsercizio.isNotBlank()) {
-                            FirebaseManager.aggiungiEsercizioCatalogo(nomeEsercizio.trim(), gruppoSelezionato)
+                        if (nomeEsercizio.isNotBlank() && gruppiSelezionati.isNotEmpty()) {
+                            FirebaseManager.aggiungiEsercizioCatalogo(nomeEsercizio.trim(), gruppiSelezionati.toList())
                             nomeEsercizio = ""
+                            gruppiSelezionati.clear()
+                            gruppiSelezionati.add("Petto")
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
@@ -109,7 +139,7 @@ fun TabDatabaseEsercizi() {
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(ex.nome, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.White)
                             Text(ex.gruppoMuscolare, fontSize = 11.sp, color = MaterialTheme.colorScheme.secondary)
                         }
@@ -117,7 +147,13 @@ fun TabDatabaseEsercizi() {
                         IconButton(onClick = {
                             esercizioInModifica = ex
                             editNome = ex.nome
-                            editGruppo = ex.gruppoMuscolare
+                            editGruppi.clear()
+                            val parsed = ex.gruppoMuscolare.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                            if (parsed.isEmpty()) {
+                                editGruppi.add("Petto")
+                            } else {
+                                editGruppi.addAll(parsed)
+                            }
                         }) {
                             Text("✏️", fontSize = 16.sp)
                         }
@@ -133,8 +169,8 @@ fun TabDatabaseEsercizi() {
             confirmButton = {
                 Button(
                     onClick = {
-                        if (editNome.isNotBlank()) {
-                            FirebaseManager.aggiornaEsercizioCatalogo(esercizioInModifica!!.id, editNome.trim(), editGruppo)
+                        if (editNome.isNotBlank() && editGruppi.isNotEmpty()) {
+                            FirebaseManager.aggiornaEsercizioCatalogo(esercizioInModifica!!.id, editNome.trim(), editGruppi.toList())
                             esercizioInModifica = null
                         }
                     },
@@ -161,13 +197,31 @@ fun TabDatabaseEsercizi() {
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    Text("Distretto Muscolare:", fontSize = 11.sp, color = Color.Gray)
-                    ScrollableTabRow(selectedTabIndex = listaGruppi.indexOf(editGruppo).coerceAtLeast(0), edgePadding = 0.dp) {
+                    Text("Distretti Muscolari (seleziona uno o più):", fontSize = 11.sp, color = Color.Gray)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         listaGruppi.forEach { g ->
-                            Tab(
-                                selected = editGruppo == g,
-                                onClick = { editGruppo = g },
-                                text = { Text(g, fontSize = 11.sp) }
+                            val selezionato = editGruppi.contains(g)
+                            FilterChip(
+                                selected = selezionato,
+                                onClick = {
+                                    if (selezionato) {
+                                        if (editGruppi.size > 1) {
+                                            editGruppi.remove(g)
+                                        }
+                                    } else {
+                                        editGruppi.add(g)
+                                    }
+                                },
+                                label = { Text(g, fontSize = 11.sp) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                    selectedLabelColor = Color.Black
+                                )
                             )
                         }
                     }
