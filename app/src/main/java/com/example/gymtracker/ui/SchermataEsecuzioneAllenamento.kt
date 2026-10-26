@@ -40,10 +40,18 @@ import java.util.Locale
 fun SchermataEsecuzioneAllenamento(
     nomeUtente: String,
     scheda: SchedaAllenamento,
+    idAllenamento: String,
     dettagliList: MutableList<EsercizioEseguitoLog>,
     secondiTrascorsi: Int,
     secondiTimer: Int,
     timerAttivo: Boolean,
+    connessioneDisponibile: Boolean?,
+    dataAllenamento: String,
+    onDataAllenamentoCambiata: (String) -> Unit,
+    pesiDigitatiIniziali: Map<String, String>,
+    ripetizioniDigitateIniziali: Map<String, String>,
+    riprendeBozza: Boolean,
+    onInputParzialiCambiati: (Map<String, String>, Map<String, String>) -> Unit,
     onAvviaTimer: (Int) -> Unit,
     onPausaTimer: () -> Unit,
     onRiprendiTimer: () -> Unit,
@@ -52,11 +60,15 @@ fun SchermataEsecuzioneAllenamento(
     onTerminato: () -> Unit
 ) {
     val context = LocalContext.current
-    val pesiSetMap = remember { mutableStateMapOf<String, String>() }
-    val repsSetMap = remember { mutableStateMapOf<String, String>() }
+    val pesiSetMap = remember(scheda.idScheda) {
+        mutableStateMapOf<String, String>().apply { putAll(pesiDigitatiIniziali) }
+    }
+    val repsSetMap = remember(scheda.idScheda) {
+        mutableStateMapOf<String, String>().apply { putAll(ripetizioniDigitateIniziali) }
+    }
 
     var ultimiLogMap by remember { mutableStateOf<Map<String, EsercizioEseguitoLog>>(emptyMap()) }
-    var serieInizializzateDaStorico by remember { mutableStateOf(false) }
+    var serieInizializzateDaStorico by remember(scheda.idScheda) { mutableStateOf(riprendeBozza) }
 
     var mostraCustomTimerDialog by remember { mutableStateOf(false) }
     var inputSecondiCustom by remember { mutableStateOf("90") }
@@ -64,7 +76,7 @@ fun SchermataEsecuzioneAllenamento(
 
     // GESTIONE SELEZIONE DATA PERSONALIZZATA
     val dateFormat = remember { SimpleDateFormat("dd/MM/yyyy", Locale.ITALIAN) }
-    var dataSelezionataStr by remember { mutableStateOf(dateFormat.format(Date())) }
+    val dataSelezionataStr = dataAllenamento
     var mostraDialogData by remember { mutableStateOf(false) }
 
     BackHandler {
@@ -91,6 +103,10 @@ fun SchermataEsecuzioneAllenamento(
             }
             ultimiLogMap = mappaRisultati
         }
+    }
+
+    LaunchedEffect(pesiSetMap.toMap(), repsSetMap.toMap()) {
+        onInputParzialiCambiati(pesiSetMap.toMap(), repsSetMap.toMap())
     }
 
     LaunchedEffect(ultimiLogMap) {
@@ -142,6 +158,15 @@ fun SchermataEsecuzioneAllenamento(
             color = MaterialTheme.colorScheme.surface
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
+                if (connessioneDisponibile != true) {
+                    Text(
+                        text = if (connessioneDisponibile == false) "Offline: sessione salvata sul dispositivo e in attesa di sincronizzazione" else "Verifica della connessione...",
+                        color = if (connessioneDisponibile == false) MaterialTheme.colorScheme.secondary else Color.Gray,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -686,7 +711,7 @@ fun SchermataEsecuzioneAllenamento(
                 }
 
                 val allenamentoCompletato = AllenamentoCompletato(
-                    id = "",
+                    id = idAllenamento,
                     nomeUtente = nomeUtente,
                     titoloScheda = scheda.titoloScheda,
                     data = dataSelezionataStr,
@@ -762,7 +787,7 @@ fun SchermataEsecuzioneAllenamento(
             confirmButton = {
                 Button(
                     onClick = {
-                        dataSelezionataStr = tempInputData
+                        onDataAllenamentoCambiata(tempInputData)
                         mostraDialogData = false
                     },
                     shape = RoundedCornerShape(12.dp),

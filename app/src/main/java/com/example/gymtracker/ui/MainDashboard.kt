@@ -23,28 +23,55 @@ import com.example.gymtracker.models.EsercizioEseguitoLog
 import com.example.gymtracker.models.SchedaAllenamento
 import com.example.gymtracker.models.SerieLog
 import com.example.gymtracker.models.TipoSerie
+import com.example.gymtracker.data.FirebaseManager
+import com.example.gymtracker.data.WorkoutDraft
+import com.example.gymtracker.data.WorkoutDraftStore
 import com.example.gymtracker.services.WorkoutNotificationService
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainDashboard(nomeUtente: String, onLogout: () -> Unit) {
     val context = LocalContext.current
+    val bozzaIniziale = remember(nomeUtente) { WorkoutDraftStore.carica(context, nomeUtente) }
     var selectedScreen by remember { mutableStateOf(0) }
     var schedaInModifica by remember { mutableStateOf<SchedaAllenamento?>(null) }
 
-    var allenamentoInCorso by remember { mutableStateOf<SchedaAllenamento?>(null) }
-    var mostraSchermataAllenamento by remember { mutableStateOf(false) }
+    var allenamentoInCorso by remember(nomeUtente) { mutableStateOf(bozzaIniziale?.scheda) }
+    var idAllenamentoInCorso by remember(nomeUtente) {
+        mutableStateOf(bozzaIniziale?.idAllenamento ?: UUID.randomUUID().toString())
+    }
+    var mostraSchermataAllenamento by remember(nomeUtente) { mutableStateOf(bozzaIniziale != null) }
     
-    var dettagliEserciziInCorso = remember { mutableStateListOf<EsercizioEseguitoLog>() }
+    var dettagliEserciziInCorso = remember(nomeUtente) {
+        mutableStateListOf<EsercizioEseguitoLog>().apply { addAll(bozzaIniziale?.dettagli.orEmpty()) }
+    }
 
-    var timestampInizioSessione by remember { mutableStateOf(0L) }
+    var timestampInizioSessione by remember(nomeUtente) { mutableStateOf(bozzaIniziale?.iniziatoAlle ?: 0L) }
     var secondiTrascorsiCronometro by remember { mutableStateOf(0) }
+    var dataAllenamento by remember(nomeUtente) {
+        mutableStateOf(bozzaIniziale?.dataAllenamento?.takeIf { it.isNotBlank() } ?: SimpleDateFormat("dd/MM/yyyy", Locale.ITALIAN).format(Date()))
+    }
+    var pesiDigitatiBozza by remember(nomeUtente) { mutableStateOf(bozzaIniziale?.pesiDigitati.orEmpty()) }
+    var ripetizioniDigitateBozza by remember(nomeUtente) { mutableStateOf(bozzaIniziale?.ripetizioniDigitate.orEmpty()) }
+    var connessioneDisponibile by remember { mutableStateOf<Boolean?>(null) }
 
-    var timestampFineTimer by remember { mutableStateOf(0L) }
-    var secondiRimanentiTimer by remember { mutableStateOf(0) }
-    var timerRecuperoAttivo by remember { mutableStateOf(false) }
+    var timestampFineTimer by remember(nomeUtente) { mutableStateOf(bozzaIniziale?.timerFineMillis ?: 0L) }
+    var secondiRimanentiTimer by remember(nomeUtente) {
+        mutableStateOf(
+            if (bozzaIniziale?.timerAttivo == true && bozzaIniziale.timerFineMillis > System.currentTimeMillis()) {
+                ((bozzaIniziale.timerFineMillis - System.currentTimeMillis()) / 1000L).toInt().coerceAtLeast(0)
+            } else bozzaIniziale?.secondiTimerRimanenti ?: 0
+        )
+    }
+    var timerRecuperoAttivo by remember(nomeUtente) {
+        mutableStateOf(bozzaIniziale?.timerAttivo == true && bozzaIniziale.timerFineMillis > System.currentTimeMillis())
+    }
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -57,6 +84,7 @@ fun MainDashboard(nomeUtente: String, onLogout: () -> Unit) {
     )
 
     LaunchedEffect(Unit) {
+        FirebaseManager.ascoltaConnessione { connessioneDisponibile = it }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
@@ -88,6 +116,38 @@ fun MainDashboard(nomeUtente: String, onLogout: () -> Unit) {
     val secCron = secondiTrascorsiCronometro % 60
     val cronometroStr = String.format("%02d:%02d", minCron, secCron)
     val timerStr = if (timerRecuperoAttivo) "${secondiRimanentiTimer}s" else if (secondiRimanentiTimer > 0) "Pausa (${secondiRimanentiTimer}s)" else "Fermo"
+
+    LaunchedEffect(
+        allenamentoInCorso,
+        dettagliEserciziInCorso.toList(),
+        timestampInizioSessione,
+        dataAllenamento,
+        pesiDigitatiBozza,
+        ripetizioniDigitateBozza,
+        timerRecuperoAttivo,
+        timestampFineTimer,
+        if (timerRecuperoAttivo) 0 else secondiRimanentiTimer
+    ) {
+        val scheda = allenamentoInCorso
+        if (scheda != null && timestampInizioSessione > 0L) {
+            WorkoutDraftStore.salva(
+                context,
+                WorkoutDraft(
+                    nickname = nomeUtente,
+                    idAllenamento = idAllenamentoInCorso,
+                    scheda = scheda,
+                    dettagli = dettagliEserciziInCorso.toList(),
+                    iniziatoAlle = timestampInizioSessione,
+                    dataAllenamento = dataAllenamento,
+                    pesiDigitati = pesiDigitatiBozza,
+                    ripetizioniDigitate = ripetizioniDigitateBozza,
+                    timerFineMillis = timestampFineTimer,
+                    secondiTimerRimanenti = secondiRimanentiTimer,
+                    timerAttivo = timerRecuperoAttivo
+                )
+            )
+        }
+    }
 
     LaunchedEffect(allenamentoInCorso, timestampInizioSessione) {
         if (allenamentoInCorso != null && timestampInizioSessione > 0L) {
@@ -291,10 +351,21 @@ fun MainDashboard(nomeUtente: String, onLogout: () -> Unit) {
                         SchermataEsecuzioneAllenamento(
                             nomeUtente = nomeUtente,
                             scheda = allenamentoInCorso!!,
+                            idAllenamento = idAllenamentoInCorso,
                             dettagliList = dettagliEserciziInCorso,
                             secondiTrascorsi = secondiTrascorsiCronometro,
                             secondiTimer = secondiRimanentiTimer,
                             timerAttivo = timerRecuperoAttivo,
+                            connessioneDisponibile = connessioneDisponibile,
+                            dataAllenamento = dataAllenamento,
+                            onDataAllenamentoCambiata = { dataAllenamento = it },
+                            pesiDigitatiIniziali = pesiDigitatiBozza,
+                            ripetizioniDigitateIniziali = ripetizioniDigitateBozza,
+                            riprendeBozza = bozzaIniziale != null,
+                            onInputParzialiCambiati = { pesi, ripetizioni ->
+                                pesiDigitatiBozza = pesi
+                                ripetizioniDigitateBozza = ripetizioni
+                            },
                             onAvviaTimer = { secondi ->
                                 timestampFineTimer = System.currentTimeMillis() + (secondi * 1000L)
                                 secondiRimanentiTimer = secondi
@@ -311,6 +382,7 @@ fun MainDashboard(nomeUtente: String, onLogout: () -> Unit) {
                             },
                             onMinimizza = { mostraSchermataAllenamento = false },
                             onAnnullaSessione = {
+                                WorkoutDraftStore.elimina(context, nomeUtente)
                                 allenamentoInCorso = null
                                 mostraSchermataAllenamento = false
                                 dettagliEserciziInCorso.clear()
@@ -321,6 +393,7 @@ fun MainDashboard(nomeUtente: String, onLogout: () -> Unit) {
                                 fermaNotifica()
                             },
                             onTerminato = {
+                                WorkoutDraftStore.elimina(context, nomeUtente)
                                 allenamentoInCorso = null
                                 mostraSchermataAllenamento = false
                                 dettagliEserciziInCorso.clear()
@@ -337,6 +410,10 @@ fun MainDashboard(nomeUtente: String, onLogout: () -> Unit) {
                                 nomeUtente = nomeUtente,
                                 onAvviaAllenamento = { nuovaScheda ->
                                     allenamentoInCorso = nuovaScheda
+                                    idAllenamentoInCorso = UUID.randomUUID().toString()
+                                    dataAllenamento = SimpleDateFormat("dd/MM/yyyy", Locale.ITALIAN).format(Date())
+                                    pesiDigitatiBozza = emptyMap()
+                                    ripetizioniDigitateBozza = emptyMap()
                                     dettagliEserciziInCorso.clear()
                                     dettagliEserciziInCorso.addAll(
                                         nuovaScheda.esercizi.map { ex ->

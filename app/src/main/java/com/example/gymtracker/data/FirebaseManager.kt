@@ -18,7 +18,10 @@ import javax.crypto.spec.PBEKeySpec
 object FirebaseManager {
     private val authExecutor = Executors.newSingleThreadExecutor()
     private const val DB_URL = "https://gym-buddy-9fe45-default-rtdb.europe-west1.firebasedatabase.app"
-    private val db = FirebaseDatabase.getInstance(DB_URL)
+    // La persistenza va attivata prima di ottenere riferimenti ai nodi del database.
+    private val db = FirebaseDatabase.getInstance(DB_URL).apply {
+        setPersistenceEnabled(true)
+    }
 
     fun registraProfilo(nickname: String, password: String, onResult: (Boolean, String?) -> Unit) {
         val nome = nickname.trim()
@@ -154,8 +157,9 @@ object FirebaseManager {
     }
 
     fun salvaAllenamentoEseguito(log: AllenamentoCompletato) {
-        val key = db.getReference("allenamenti_completati").push().key ?: return
-        db.getReference("allenamenti_completati").child(key).setValue(log.copy(id = key))
+        val ref = db.getReference("allenamenti_completati")
+        val key = log.id.ifBlank { ref.push().key ?: return }
+        ref.child(key).setValue(log.copy(id = key))
     }
 
     fun ascoltaFeedAllenamenti(onUpdate: (List<AllenamentoCompletato>) -> Unit) {
@@ -169,6 +173,17 @@ object FirebaseManager {
                 onUpdate(lista)
             }
             override fun onCancelled(error: DatabaseError) {}
+        })
+    }
+
+    fun ascoltaConnessione(onStato: (Boolean) -> Unit) {
+        db.getReference(".info/connected").addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                onStato(snapshot.getValue(Boolean::class.java) ?: false)
+            }
+            override fun onCancelled(error: DatabaseError) {
+                onStato(false)
+            }
         })
     }
 
