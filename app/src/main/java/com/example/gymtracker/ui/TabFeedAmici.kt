@@ -46,8 +46,9 @@ fun TabFeedAmici(nomeUtenteLoggato: String) {
         FirebaseManager.ascoltaFeedAllenamenti { feed = it }
     }
 
+    val utentiVisibili = rememberUtentiVisibili(nomeUtenteLoggato)
     val parserData = remember { SimpleDateFormat("dd/MM/yyyy", Locale.ITALIAN) }
-    val gruppiUtenti = remember(feed, filtroPeriodo) {
+    val gruppiUtenti = remember(feed, filtroPeriodo, utentiVisibili) {
         val adesso = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
@@ -60,6 +61,8 @@ fun TabFeedAmici(nomeUtenteLoggato: String) {
             else -> null
         }
         feed.filter { allenamento ->
+            allenamento.visibilePer(utentiVisibili)
+        }.filter { allenamento ->
             val data = runCatching { parserData.parse(allenamento.data) }.getOrNull()
             inizioFiltro == null || (data != null && !data.before(inizioFiltro.time))
         }.groupBy { it.nomeUtente.trim().ifBlank { "Utente sconosciuto" } }

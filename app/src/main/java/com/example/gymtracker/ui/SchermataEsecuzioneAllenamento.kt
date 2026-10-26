@@ -24,6 +24,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gymtracker.data.FirebaseManager
+import com.example.gymtracker.data.TimerPersonalizzatiStore
 import com.example.gymtracker.models.AllenamentoCompletato
 import com.example.gymtracker.models.EsercizioEseguitoLog
 import com.example.gymtracker.models.SchedaAllenamento
@@ -59,6 +60,11 @@ fun SchermataEsecuzioneAllenamento(
     onTerminato: () -> Unit
 ) {
     val context = LocalContext.current
+    val timerPersonalizzati = remember(nomeUtente) {
+        mutableStateListOf<Int>().apply {
+            addAll(TimerPersonalizzatiStore.carica(context, FirebaseManager.chiaveUtente(nomeUtente)))
+        }
+    }
     val pesiSetMap = remember(scheda.idScheda) {
         mutableStateMapOf<String, String>().apply { putAll(pesiDigitatiIniziali) }
     }
@@ -244,6 +250,19 @@ fun SchermataEsecuzioneAllenamento(
                                 colors = FilterChipDefaults.filterChipColors(
                                     containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
                                     labelColor = MaterialTheme.colorScheme.primary
+                                )
+                            )
+                        }
+
+                        timerPersonalizzati.forEach { sec ->
+                            FilterChip(
+                                selected = false,
+                                onClick = { onAvviaTimer(sec) },
+                                label = { Text("${sec}s", fontSize = 12.sp, fontWeight = FontWeight.Bold) },
+                                shape = RoundedCornerShape(16.dp),
+                                colors = FilterChipDefaults.filterChipColors(
+                                    containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.18f),
+                                    labelColor = MaterialTheme.colorScheme.tertiary
                                 )
                             )
                         }
@@ -673,12 +692,14 @@ fun SchermataEsecuzioneAllenamento(
                     if (ex.saltato) return@filter false
                     val serie = ex.getSerieEffettive()
                     if (serie.isEmpty()) return@filter true
-                    serie.any { it.reps <= 0 }
+                    // Le serie con 0 ripetizioni sono considerate non eseguite e verranno escluse.
+                    // Un valore negativo resta invece un dato non valido.
+                    serie.any { it.reps < 0 }
                 }
                 if (nonIncompilati.isNotEmpty()) {
                     Toast.makeText(
                         context,
-                        "Compila le ripetizioni per tutte le serie svolte oppure segna 'Non fatto'",
+                        "Controlla le ripetizioni inserite oppure segna l'esercizio come 'Non fatto'",
                         Toast.LENGTH_LONG
                     ).show()
                     return@Button
@@ -689,6 +710,17 @@ fun SchermataEsecuzioneAllenamento(
                         ex.copy(pesoKg = 0.0, serieEseguite = 0, repsEseguite = 0, serieDettaglio = emptyList())
                     } else {
                         val serie = ex.getSerieEffettive()
+                            .filter { it.reps > 0 }
+                            .mapIndexed { index, dettaglio -> dettaglio.copy(numeroSerie = index + 1) }
+                        if (serie.isEmpty()) {
+                            return@map ex.copy(
+                                pesoKg = 0.0,
+                                serieEseguite = 0,
+                                repsEseguite = 0,
+                                saltato = true,
+                                serieDettaglio = emptyList()
+                            )
+                        }
                         val pesoMax = serie.maxOfOrNull { it.pesoKg } ?: 0.0
                         val repsMedie = if (serie.isNotEmpty()) (serie.sumOf { it.reps } / serie.size) else 0
                         ex.copy(
@@ -855,6 +887,15 @@ fun SchermataEsecuzioneAllenamento(
                     onClick = {
                         val sec = inputSecondiCustom.toIntOrNull() ?: 90
                         if (sec > 0) {
+                            if (sec !in timerPersonalizzati) {
+                                timerPersonalizzati.add(sec)
+                                timerPersonalizzati.sort()
+                                TimerPersonalizzatiStore.salva(
+                                    context,
+                                    FirebaseManager.chiaveUtente(nomeUtente),
+                                    timerPersonalizzati
+                                )
+                            }
                             onAvviaTimer(sec)
                             mostraCustomTimerDialog = false
                         }

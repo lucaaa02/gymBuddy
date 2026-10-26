@@ -58,17 +58,22 @@ fun TabGraficiProgressi(nomeUtenteLoggato: String) {
         FirebaseManager.ascoltaFeedAllenamenti { feedAllenamenti = it }
     }
 
+    val utentiVisibili = rememberUtentiVisibili(nomeUtenteLoggato)
+    val feedVisibile = remember(feedAllenamenti, utentiVisibili) {
+        feedAllenamenti.filter { it.visibilePer(utentiVisibili) }
+    }
+
     // Lista distinta degli utenti registrati nel feed
-    val listaUtenti = remember(feedAllenamenti, nomeUtenteLoggato) {
-        (listOf(nomeUtenteLoggato) + feedAllenamenti.map { it.nomeUtente }).distinct().sorted()
+    val listaUtenti = remember(feedVisibile, nomeUtenteLoggato) {
+        (listOf(nomeUtenteLoggato) + feedVisibile.map { it.nomeUtente }).distinct().sorted()
     }
 
     // Storico cronologico per l'utente selezionato
-    val storicoPunti = remember(esercizioSelezionato, feedAllenamenti, utenteSelezionato) {
+    val storicoPunti = remember(esercizioSelezionato, feedVisibile, utenteSelezionato) {
         if (esercizioSelezionato == null) emptyList()
         else {
             val punti = mutableListOf<PontoGrafico>()
-            feedAllenamenti
+            feedVisibile
                 .filter { it.nomeUtente.equals(utenteSelezionato, ignoreCase = true) }
                 .reversed()
                 .forEach { sessione ->

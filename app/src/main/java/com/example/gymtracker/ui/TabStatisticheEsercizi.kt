@@ -36,7 +36,7 @@ data class SingolaEsecuzione(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TabStatisticheEsercizi() {
+fun TabStatisticheEsercizi(nomeUtenteLoggato: String) {
     var catalogoEsercizi by remember { mutableStateOf(listOf<EsercizioCatalogo>()) }
     var feedAllenamenti by remember { mutableStateOf(listOf<AllenamentoCompletato>()) }
 
@@ -48,19 +48,24 @@ fun TabStatisticheEsercizi() {
         FirebaseManager.ascoltaFeedAllenamenti { feedAllenamenti = it }
     }
 
+    val utentiVisibili = rememberUtentiVisibili(nomeUtenteLoggato)
+    val feedVisibile = remember(feedAllenamenti, utentiVisibili) {
+        feedAllenamenti.filter { it.visibilePer(utentiVisibili) }
+    }
+
     // Lista distinta di tutti gli utenti presenti nel Feed
-    val listaUtenti = remember(feedAllenamenti) {
-        feedAllenamenti.map { it.nomeUtente.uppercase() }.distinct().sorted()
+    val listaUtenti = remember(feedVisibile) {
+        feedVisibile.map { it.nomeUtente.uppercase() }.distinct().sorted()
     }
 
     // Mappa per ciascun utente della lista ordinata delle sue esecuzioni (dal più recente al meno recente)
-    val mappaEsecuzioniPerUtente = remember(esercizioSelezionato, feedAllenamenti, listaUtenti) {
+    val mappaEsecuzioniPerUtente = remember(esercizioSelezionato, feedVisibile, listaUtenti) {
         if (esercizioSelezionato == null) emptyMap()
         else {
             val mappa = mutableMapOf<String, List<SingolaEsecuzione>>()
             listaUtenti.forEach { utente ->
                 val listaUtente = mutableListOf<SingolaEsecuzione>()
-                feedAllenamenti.forEach { sessione ->
+                feedVisibile.forEach { sessione ->
                     if (sessione.nomeUtente.equals(utente, ignoreCase = true)) {
                         sessione.dettagliEsercizi.forEach { ex ->
                             if (ex.nomeEsercizio.equals(esercizioSelezionato!!.nome, ignoreCase = true) ||

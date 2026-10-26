@@ -233,6 +233,16 @@ object FirebaseManager {
             })
     }
 
+    fun ascoltaChiaviAmici(nickname: String, onUpdate: (Set<String>) -> Unit) {
+        db.getReference("amicizie").child(chiaveNickname(nickname)).child("amici")
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    onUpdate(snapshot.children.mapNotNull { it.key }.toSet())
+                }
+                override fun onCancelled(error: DatabaseError) { onUpdate(emptySet()) }
+            })
+    }
+
     fun ascoltaRichiesteAmicizia(nickname: String, onUpdate: (List<RichiestaAmicizia>) -> Unit) {
         db.getReference("amicizie").child(chiaveNickname(nickname)).child("richiesteRicevute")
             .addValueEventListener(object : ValueEventListener {

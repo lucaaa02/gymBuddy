@@ -450,7 +450,7 @@ fun MainDashboard(nomeUtente: String, onLogout: () -> Unit) {
                             )
                             2 -> TabDatabaseEsercizi()
                             3 -> TabResocontoSettimanale(nomeUtente)
-                            4 -> TabStatisticheEsercizi()
+                            4 -> TabStatisticheEsercizi(nomeUtente)
                             5 -> TabCommunityDashboard(nomeUtente)
                             6 -> TabFeedAmici(nomeUtente)
                             7 -> TabAmici(nomeUtente)

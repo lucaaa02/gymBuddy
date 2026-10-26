@@ -70,6 +70,11 @@ fun TabCommunityDashboard(nomeUtenteLoggato: String) {
         FirebaseManager.ascoltaCatalogoEsercizi { catalogoEsercizi = it }
     }
 
+    val utentiVisibili = rememberUtentiVisibili(nomeUtenteLoggato)
+    val feedVisibile = remember(feedAllenamenti, utentiVisibili) {
+        feedAllenamenti.filter { it.visibilePer(utentiVisibili) }
+    }
+
     val calendarioSelezionato = remember(offsetMesi) {
         Calendar.getInstance(Locale.ITALIAN).apply { add(Calendar.MONTH, offsetMesi) }
     }
@@ -79,8 +84,8 @@ fun TabCommunityDashboard(nomeUtenteLoggato: String) {
         .format(calendarioSelezionato.time).replaceFirstChar { it.uppercase() }
 
     // 1. ASSEGNAZIONE COLORI AGLI UTENTI
-    val mappaColoriUtenti = remember(feedAllenamenti, nomeUtenteLoggato) {
-        val tuttiUtenti = (listOf(nomeUtenteLoggato) + feedAllenamenti.map { it.nomeUtente }).distinct().sorted()
+    val mappaColoriUtenti = remember(feedVisibile, nomeUtenteLoggato) {
+        val tuttiUtenti = (listOf(nomeUtenteLoggato) + feedVisibile.map { it.nomeUtente }).distinct().sorted()
         val mappa = mutableMapOf<String, Color>()
         tuttiUtenti.forEachIndexed { index, utente ->
             mappa[utente.uppercase()] = PalettaColoriUtenti[index % PalettaColoriUtenti.size]
@@ -89,9 +94,9 @@ fun TabCommunityDashboard(nomeUtenteLoggato: String) {
     }
 
     // 2. MAPPA GIORNI CON LISTA UTENTI CHE SI SONO ALLENATI IN QUEL GIORNO
-    val mappaGiorniUtenti = remember(feedAllenamenti, meseSelezionato, annoSelezionato) {
+    val mappaGiorniUtenti = remember(feedVisibile, meseSelezionato, annoSelezionato) {
         val mappa = mutableMapOf<Int, MutableSet<String>>()
-        feedAllenamenti.forEach { log ->
+        feedVisibile.forEach { log ->
             val partiData = log.data.split("/")
             if (partiData.size >= 3) {
                 val g = partiData[0].toIntOrNull() ?: -1
@@ -107,9 +112,9 @@ fun TabCommunityDashboard(nomeUtenteLoggato: String) {
     }
 
     // 3. CLASSIFICA MENSELE
-    val classificaMese = remember(feedAllenamenti, meseSelezionato, annoSelezionato) {
+    val classificaMese = remember(feedVisibile, meseSelezionato, annoSelezionato) {
         val mappaUtenti = mutableMapOf<String, Pair<Int, Double>>()
-        feedAllenamenti.forEach { log ->
+        feedVisibile.forEach { log ->
             val partiData = log.data.split("/")
             if (partiData.size >= 3) {
                 val mese = (partiData[1].toIntOrNull() ?: 1) - 1
@@ -126,11 +131,11 @@ fun TabCommunityDashboard(nomeUtenteLoggato: String) {
             .sortedByDescending { it.numAllenamenti }
     }
 
-    val recordPerEsercizio = remember(feedAllenamenti, catalogoEsercizi, meseSelezionato, annoSelezionato) {
+    val recordPerEsercizio = remember(feedVisibile, catalogoEsercizi, meseSelezionato, annoSelezionato) {
         catalogoEsercizi
             .sortedBy { it.nome.lowercase() }
             .map { esercizio ->
-                val candidati = feedAllenamenti
+                val candidati = feedVisibile
                     .filter { log ->
                         val partiData = log.data.split("/")
                         partiData.size >= 3 &&
