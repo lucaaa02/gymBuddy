@@ -1,0 +1,60 @@
+name: Build and publish Android APK
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Prepare release signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_PASSWORD" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASSWORD" ]; then
+            echo "Configure ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS and ANDROID_KEY_PASSWORD in repository Actions secrets."
+            exit 1
+          fi
+          KEYSTORE_PATH="$RUNNER_TEMP/gymtracker-release.jks"
+          echo "$KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE_PATH"
+          {
+            echo "ANDROID_KEYSTORE_PATH=$KEYSTORE_PATH"
+            echo "ANDROID_KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD"
+            echo "ANDROID_KEY_ALIAS=$KEY_ALIAS"
+            echo "ANDROID_KEY_PASSWORD=$KEY_PASSWORD"
+          } >> "$GITHUB_ENV"
+
+      - name: Build signed APK
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          VERSION_NAME="${TAG_NAME#v}"
+          VERSION_CODE=$((RUN_NUMBER + 1))
+          ./gradlew --no-daemon assembleRelease \
+            -PappVersionName="$VERSION_NAME" \
+            -PappVersionCode="$VERSION_CODE"
+          cp app/build/outputs/apk/release/app-release.apk "gymtracker-${TAG_NAME}.apk"
+
+      - name: Publish GitHub Release with APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ github.ref_name }}
+        run: gh release create "$TAG_NAME" "gymtracker-${TAG_NAME}.apk#Gym Tracker Android APK" --title "Gym Tracker $TAG_NAME" --generate-notes

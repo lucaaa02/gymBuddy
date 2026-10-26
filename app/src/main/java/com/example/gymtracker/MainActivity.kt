@@ -14,6 +14,7 @@ import com.example.gymtracker.ui.RegistrationScreen
 import com.example.gymtracker.ui.MainDashboard
 import com.example.gymtracker.ui.WelcomeScreen
 import com.example.gymtracker.ui.LoginScreen
+import com.example.gymtracker.ui.UpdatePrompt
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,4 +78,6 @@ fun AppNavigation() {
             }
         )
     }
+
+    UpdatePrompt()
 }

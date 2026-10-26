@@ -1,23 +1,20 @@
 -- Merging decision tree log ---
+provider#androidx.core.content.FileProvider
+INJECTED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:39:9-47:20
+	android:grantUriPermissions
+		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:43:13-47
+	android:authorities
+		INJECTED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml
+		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:41:13-64
+	android:exported
+		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:42:13-37
+	android:name
+		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:40:13-62
 manifest
-ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:2:1-40:12
-INJECTED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:2:1-40:12
-INJECTED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:2:1-40:12
-INJECTED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:2:1-40:12
-MERGED from [androidx.compose.material3:material3-android:1.2.0] /home/luca/.gradle/caches/transforms-3/fcb32e754550e7e648172b583bdc46db/transformed/material3-release/AndroidManifest.xml:17:1-22:12
-MERGED from [androidx.compose.animation:animation-core-android:1.6.1] /home/luca/.gradle/caches/transforms-3/44770ca6cc05c6ede63d04c108c9ce96/transformed/animation-core-release/AndroidManifest.xml:2:1-7:12
-MERGED from [androidx.compose.material:material-icons-core-android:1.6.1] /home/luca/.gradle/caches/transforms-3/ae07e7570a4f344e61caa5752d842b86/transformed/material-icons-core-release/AndroidManifest.xml:2:1-7:12
-MERGED from [androidx.compose.material:material-ripple-android:1.6.1] /home/luca/.gradle/caches/transforms-3/3a55c4a345f45d71f622530f02188074/transformed/material-ripple-release/AndroidManifest.xml:2:1-7:12
-MERGED from [androidx.compose.animation:animation-android:1.6.1] /home/luca/.gradle/caches/transforms-3/fef6bfaa61fa80a76a4b62fe7c801d90/transformed/animation-release/AndroidManifest.xml:2:1-7:12
-MERGED from [androidx.compose.foundation:foundation-layout-android:1.6.1] /home/luca/.gradle/caches/transforms-3/d29c218c171cb639baccf8fc8be174cd/transformed/foundation-layout-release/AndroidManifest.xml:2:1-7:12
-MERGED from [androidx.compose.foundation:foundation-android:1.6.1] /home/luca/.gradle/caches/transforms-3/7e3591afe4b686f9b5c6494ff4521a4c/transformed/foundation-release/AndroidManifest.xml:2:1-7:12
-MERGED from [androidx.compose.ui:ui-unit-android:1.6.1] /home/luca/.gradle/caches/transforms-3/a7e9bea42759a19aea48672a66ab82b5/transformed/ui-unit-release/AndroidManifest.xml:2:1-7:12
-MERGED from [androidx.compose.ui:ui-geometry-android:1.6.1] /home/luca/.gradle/caches/transforms-3/0625c3d8471367fc6cb14c5097a1046e/transformed/ui-geometry-release/AndroidManifest.xml:2:1-7:12
-MERGED from [androidx.compose.ui:ui-util-android:1.6.1] /home/luca/.gradle/caches/transforms-3/e6eaf2290c687cb6888d6e602f8b674e/transformed/ui-util-release/AndroidManifest.xml:2:1-7:12
-MERGED from [androidx.compose.ui:ui-text-android:1.6.1] /home/luca/.gradle/caches/transforms-3/e4dab1eff45111ae5dc24c4dae368e66/transformed/ui-text-release/AndroidManifest.xml:2:1-7:12
-MERGED from [androidx.compose.ui:ui-graphics-android:1.6.1] /home/luca/.gradle/caches/transforms-3/b69d3be6398bd1efd9dbca5fcef9a74e/transformed/ui-graphics-release/AndroidManifest.xml:2:1-7:12
-MERGED from [androidx.compose.ui:ui-tooling-preview-android:1.6.1] /home/luca/.gradle/caches/transforms-3/36b12542779e2b13663af2b81c890166/transformed/ui-tooling-preview-release/AndroidManifest.xml:17:1-22:12
-MERGED from [androidx.compose.ui:ui-android:1.6.1] /home/luca/.gradle/caches/transforms-3/ff4a51c339e82c71ae3a7136c483ac46/transformed/ui-release/AndroidManifest.xml:2:1-7:12
+ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:2:1-51:12
+INJECTED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:2:1-51:12
+INJECTED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:2:1-51:12
+INJECTED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:2:1-51:12
 MERGED from [com.google.firebase:firebase-database-ktx:21.0.0] /home/luca/.gradle/caches/transforms-3/4241bec52543cdac4b6717871493f81c/transformed/firebase-database-ktx-21.0.0/AndroidManifest.xml:2:1-18:12
 MERGED from [com.google.firebase:firebase-firestore-ktx:25.0.0] /home/luca/.gradle/caches/transforms-3/c557f55edb86dd056052daecfa71d967/transformed/firebase-firestore-ktx-25.0.0/AndroidManifest.xml:2:1-18:12
 MERGED from [com.google.firebase:firebase-database:21.0.0] /home/luca/.gradle/caches/transforms-3/65d308d0cd50d5def7f65653bcccce93/transformed/firebase-database-21.0.0/AndroidManifest.xml:15:1-38:12
@@ -28,20 +25,27 @@ MERGED from [com.google.firebase:firebase-appcheck-interop:17.1.0] /home/luca/.g
 MERGED from [com.google.firebase:firebase-auth-interop:20.0.0] /home/luca/.gradle/caches/transforms-3/c8f53fb4f818b0b9d18884c8905eaecc/transformed/firebase-auth-interop-20.0.0/AndroidManifest.xml:2:1-10:12
 MERGED from [com.google.firebase:firebase-database-collection:18.0.1] /home/luca/.gradle/caches/transforms-3/8b9ba408937af969dc792d27431b9c48/transformed/firebase-database-collection-18.0.1/AndroidManifest.xml:2:1-9:12
 MERGED from [com.google.android.gms:play-services-base:18.1.0] /home/luca/.gradle/caches/transforms-3/1e553d50dd57f7b43b9e4b6ac2291249/transformed/play-services-base-18.1.0/AndroidManifest.xml:16:1-24:12
-MERGED from [androidx.autofill:autofill:1.0.0] /home/luca/.gradle/caches/transforms-3/1fa1cb406f7cdc715157d5b488a97e2c/transformed/autofill-1.0.0/AndroidManifest.xml:17:1-24:12
-MERGED from [androidx.customview:customview-poolingcontainer:1.0.0] /home/luca/.gradle/caches/transforms-3/ab77ae8bbd9ab10407d55faca395adfc/transformed/customview-poolingcontainer-1.0.0/AndroidManifest.xml:17:1-23:12
+MERGED from [androidx.compose.material3:material3-android:1.2.0] /home/luca/.gradle/caches/transforms-3/fcb32e754550e7e648172b583bdc46db/transformed/material3-release/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] /home/luca/.gradle/caches/transforms-3/0b8b9203ee3607256f56fbf2f4bb6b80/transformed/savedstate-ktx-1.2.1/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.savedstate:savedstate:1.2.1] /home/luca/.gradle/caches/transforms-3/68a82d599de0e47f6fc4c99522482f4e/transformed/savedstate-1.2.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.compose.animation:animation-core-android:1.6.1] /home/luca/.gradle/caches/transforms-3/44770ca6cc05c6ede63d04c108c9ce96/transformed/animation-core-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.material:material-icons-core-android:1.6.1] /home/luca/.gradle/caches/transforms-3/ae07e7570a4f344e61caa5752d842b86/transformed/material-icons-core-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.material:material-ripple-android:1.6.1] /home/luca/.gradle/caches/transforms-3/3a55c4a345f45d71f622530f02188074/transformed/material-ripple-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.animation:animation-android:1.6.1] /home/luca/.gradle/caches/transforms-3/fef6bfaa61fa80a76a4b62fe7c801d90/transformed/animation-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.foundation:foundation-layout-android:1.6.1] /home/luca/.gradle/caches/transforms-3/d29c218c171cb639baccf8fc8be174cd/transformed/foundation-layout-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.foundation:foundation-android:1.6.1] /home/luca/.gradle/caches/transforms-3/7e3591afe4b686f9b5c6494ff4521a4c/transformed/foundation-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-unit-android:1.6.1] /home/luca/.gradle/caches/transforms-3/a7e9bea42759a19aea48672a66ab82b5/transformed/ui-unit-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-geometry-android:1.6.1] /home/luca/.gradle/caches/transforms-3/0625c3d8471367fc6cb14c5097a1046e/transformed/ui-geometry-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-util-android:1.6.1] /home/luca/.gradle/caches/transforms-3/e6eaf2290c687cb6888d6e602f8b674e/transformed/ui-util-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-graphics-android:1.6.1] /home/luca/.gradle/caches/transforms-3/b69d3be6398bd1efd9dbca5fcef9a74e/transformed/ui-graphics-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-tooling-preview-android:1.6.1] /home/luca/.gradle/caches/transforms-3/36b12542779e2b13663af2b81c890166/transformed/ui-tooling-preview-release/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.compose.ui:ui-text-android:1.6.1] /home/luca/.gradle/caches/transforms-3/e4dab1eff45111ae5dc24c4dae368e66/transformed/ui-text-release/AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.emoji2:emoji2:1.3.0] /home/luca/.gradle/caches/transforms-3/4ed8f53c45b0e08835d5183f5acbf0cf/transformed/emoji2-1.3.0/AndroidManifest.xml:17:1-35:12
 MERGED from [androidx.loader:loader:1.0.0] /home/luca/.gradle/caches/transforms-3/3116916f54c4f8134e0c247cb4b1625c/transformed/loader-1.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.lifecycle:lifecycle-livedata:2.6.1] /home/luca/.gradle/caches/transforms-3/4bc3dca43c9b3ca7c59254b68388c75b/transformed/lifecycle-livedata-2.6.1/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.lifecycle:lifecycle-process:2.6.1] /home/luca/.gradle/caches/transforms-3/d0ba1df430fa270c21289478c53ee0a1/transformed/lifecycle-process-2.6.1/AndroidManifest.xml:17:1-35:12
 MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.6.1] /home/luca/.gradle/caches/transforms-3/747a41cea37db7249a7a1ad0990301c6/transformed/lifecycle-livedata-core-2.6.1/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.6.1] /home/luca/.gradle/caches/transforms-3/3d6f70140c231ddb40c4134f1a3624ba/transformed/lifecycle-viewmodel-savedstate-2.6.1/AndroidManifest.xml:17:1-22:12
-MERGED from [androidx.core:core-ktx:1.12.0] /home/luca/.gradle/caches/transforms-3/ec3aa15701592b1dde34281cdc1b1a71/transformed/core-ktx-1.12.0/AndroidManifest.xml:2:1-7:12
-MERGED from [androidx.viewpager:viewpager:1.0.0] /home/luca/.gradle/caches/transforms-3/c91a4e15fc471cb2e88a2459817d3f45/transformed/viewpager-1.0.0/AndroidManifest.xml:17:1-22:12
-MERGED from [androidx.customview:customview:1.0.0] /home/luca/.gradle/caches/transforms-3/81aea3e51f3ef07facc03290ef054de0/transformed/customview-1.0.0/AndroidManifest.xml:17:1-22:12
-MERGED from [androidx.core:core:1.12.0] /home/luca/.gradle/caches/transforms-3/f678e523ba7a3129e16879ef09298de1/transformed/core-1.12.0/AndroidManifest.xml:17:1-30:12
 MERGED from [androidx.lifecycle:lifecycle-runtime:2.6.1] /home/luca/.gradle/caches/transforms-3/058bbeef5197e8eae56fb947f649fee3/transformed/lifecycle-runtime-2.6.1/AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1] /home/luca/.gradle/caches/transforms-3/558bf6224153e30cfa760b3bb6b0757c/transformed/lifecycle-viewmodel-ktx-2.6.1/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.6.1] /home/luca/.gradle/caches/transforms-3/b93075e37a6c63cbe65a437b008956be/transformed/lifecycle-viewmodel-2.6.1/AndroidManifest.xml:17:1-22:12
@@ -54,14 +58,21 @@ MERGED from [androidx.fragment:fragment:1.1.0] /home/luca/.gradle/caches/transfo
 MERGED from [androidx.activity:activity:1.8.2] /home/luca/.gradle/caches/transforms-3/1dbd0303285779d226ef4ce473982d61/transformed/activity-1.8.2/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.activity:activity-ktx:1.8.2] /home/luca/.gradle/caches/transforms-3/c49bb3cfa5b1a4c7f0b395f507b8d2c9/transformed/activity-ktx-1.8.2/AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.activity:activity-compose:1.8.2] /home/luca/.gradle/caches/transforms-3/6ef72d5f6dead1b01a2a4f42d3d3f682/transformed/activity-compose-1.8.2/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-android:1.6.1] /home/luca/.gradle/caches/transforms-3/ff4a51c339e82c71ae3a7136c483ac46/transformed/ui-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.autofill:autofill:1.0.0] /home/luca/.gradle/caches/transforms-3/1fa1cb406f7cdc715157d5b488a97e2c/transformed/autofill-1.0.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.viewpager:viewpager:1.0.0] /home/luca/.gradle/caches/transforms-3/c91a4e15fc471cb2e88a2459817d3f45/transformed/viewpager-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.customview:customview:1.0.0] /home/luca/.gradle/caches/transforms-3/81aea3e51f3ef07facc03290ef054de0/transformed/customview-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.core:core:1.12.0] /home/luca/.gradle/caches/transforms-3/f678e523ba7a3129e16879ef09298de1/transformed/core-1.12.0/AndroidManifest.xml:17:1-30:12
+MERGED from [androidx.customview:customview-poolingcontainer:1.0.0] /home/luca/.gradle/caches/transforms-3/ab77ae8bbd9ab10407d55faca395adfc/transformed/customview-poolingcontainer-1.0.0/AndroidManifest.xml:17:1-23:12
+MERGED from [androidx.core:core-ktx:1.12.0] /home/luca/.gradle/caches/transforms-3/ec3aa15701592b1dde34281cdc1b1a71/transformed/core-ktx-1.12.0/AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.annotation:annotation-experimental:1.4.0] /home/luca/.gradle/caches/transforms-3/f70d5185d5420c99129a7d49a1e6a386/transformed/annotation-experimental-1.4.0/AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/luca/.gradle/caches/transforms-3/3516aee38d1b99ac9975b40268da8dd5/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:17:1-27:12
 MERGED from [com.google.firebase:firebase-components:18.0.0] /home/luca/.gradle/caches/transforms-3/a57bedea032a41b5d14b743b46a88109/transformed/firebase-components-18.0.0/AndroidManifest.xml:15:1-20:12
+MERGED from [androidx.interpolator:interpolator:1.0.0] /home/luca/.gradle/caches/transforms-3/96054b8afff8c69ce6212f1d75aba3de/transformed/interpolator-1.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.profileinstaller:profileinstaller:1.3.0] /home/luca/.gradle/caches/transforms-3/6da265f4b77c2f3ac2acfa06a6514a0b/transformed/profileinstaller-1.3.0/AndroidManifest.xml:17:1-55:12
 MERGED from [androidx.startup:startup-runtime:1.1.1] /home/luca/.gradle/caches/transforms-3/05cc00abbea35cfea9862748b5f9d28c/transformed/startup-runtime-1.1.1/AndroidManifest.xml:17:1-33:12
 MERGED from [androidx.tracing:tracing:1.0.0] /home/luca/.gradle/caches/transforms-3/5447fcffb5541cd56ac1a6b99230f7b2/transformed/tracing-1.0.0/AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.arch.core:core-runtime:2.2.0] /home/luca/.gradle/caches/transforms-3/412b2524f4083fc11eda6cb4151f7798/transformed/core-runtime-2.2.0/AndroidManifest.xml:17:1-22:12
-MERGED from [androidx.interpolator:interpolator:1.0.0] /home/luca/.gradle/caches/transforms-3/96054b8afff8c69ce6212f1d75aba3de/transformed/interpolator-1.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [io.grpc:grpc-android:1.57.2] /home/luca/.gradle/caches/transforms-3/367d1fc3a8813c3e53ba12edd82dc906/transformed/grpc-android-1.57.2/AndroidManifest.xml:2:1-9:12
 MERGED from [com.google.firebase:protolite-well-known-types:18.0.0] /home/luca/.gradle/caches/transforms-3/88f8bbf475698c441fc6c7d421107394/transformed/protolite-well-known-types-18.0.0/AndroidManifest.xml:2:1-11:12
 	package
@@ -80,21 +91,25 @@ MERGED from [com.google.firebase:firebase-firestore:25.0.0] /home/luca/.gradle/c
 MERGED from [com.google.firebase:firebase-firestore:25.0.0] /home/luca/.gradle/caches/transforms-3/12219ac1d06a1575d604234aee1719e1/transformed/firebase-firestore-25.0.0/AndroidManifest.xml:11:5-67
 	android:name
 		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:4:22-64
-uses-permission#android.permission.POST_NOTIFICATIONS
-ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:5:5-77
+uses-permission#android.permission.REQUEST_INSTALL_PACKAGES
+ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:5:5-83
 	android:name
-		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:5:22-74
-uses-permission#android.permission.FOREGROUND_SERVICE
+		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:5:22-80
+uses-permission#android.permission.POST_NOTIFICATIONS
 ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:6:5-77
 	android:name
 		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:6:22-74
-uses-permission#android.permission.FOREGROUND_SERVICE_SPECIAL_USE
-ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:7:5-89
+uses-permission#android.permission.FOREGROUND_SERVICE
+ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:7:5-77
 	android:name
-		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:7:22-86
+		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:7:22-74
+uses-permission#android.permission.FOREGROUND_SERVICE_SPECIAL_USE
+ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:8:5-89
+	android:name
+		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:8:22-86
 application
-ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:9:5-38:19
-INJECTED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:9:5-38:19
+ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:10:5-49:19
+INJECTED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:10:5-49:19
 MERGED from [com.google.firebase:firebase-database-ktx:21.0.0] /home/luca/.gradle/caches/transforms-3/4241bec52543cdac4b6717871493f81c/transformed/firebase-database-ktx-21.0.0/AndroidManifest.xml:8:5-16:19
 MERGED from [com.google.firebase:firebase-database-ktx:21.0.0] /home/luca/.gradle/caches/transforms-3/4241bec52543cdac4b6717871493f81c/transformed/firebase-database-ktx-21.0.0/AndroidManifest.xml:8:5-16:19
 MERGED from [com.google.firebase:firebase-firestore-ktx:25.0.0] /home/luca/.gradle/caches/transforms-3/c557f55edb86dd056052daecfa71d967/transformed/firebase-firestore-ktx-25.0.0/AndroidManifest.xml:8:5-16:19
@@ -117,12 +132,12 @@ MERGED from [androidx.emoji2:emoji2:1.3.0] /home/luca/.gradle/caches/transforms-
 MERGED from [androidx.emoji2:emoji2:1.3.0] /home/luca/.gradle/caches/transforms-3/4ed8f53c45b0e08835d5183f5acbf0cf/transformed/emoji2-1.3.0/AndroidManifest.xml:23:5-33:19
 MERGED from [androidx.lifecycle:lifecycle-process:2.6.1] /home/luca/.gradle/caches/transforms-3/d0ba1df430fa270c21289478c53ee0a1/transformed/lifecycle-process-2.6.1/AndroidManifest.xml:23:5-33:19
 MERGED from [androidx.lifecycle:lifecycle-process:2.6.1] /home/luca/.gradle/caches/transforms-3/d0ba1df430fa270c21289478c53ee0a1/transformed/lifecycle-process-2.6.1/AndroidManifest.xml:23:5-33:19
-MERGED from [androidx.core:core:1.12.0] /home/luca/.gradle/caches/transforms-3/f678e523ba7a3129e16879ef09298de1/transformed/core-1.12.0/AndroidManifest.xml:28:5-89
-MERGED from [androidx.core:core:1.12.0] /home/luca/.gradle/caches/transforms-3/f678e523ba7a3129e16879ef09298de1/transformed/core-1.12.0/AndroidManifest.xml:28:5-89
 MERGED from [com.google.android.gms:play-services-tasks:18.1.0] /home/luca/.gradle/caches/transforms-3/3ec75bf78c7117c2a07be2f114422378/transformed/play-services-tasks-18.1.0/AndroidManifest.xml:5:5-20
 MERGED from [com.google.android.gms:play-services-tasks:18.1.0] /home/luca/.gradle/caches/transforms-3/3ec75bf78c7117c2a07be2f114422378/transformed/play-services-tasks-18.1.0/AndroidManifest.xml:5:5-20
 MERGED from [com.google.android.gms:play-services-basement:18.3.0] /home/luca/.gradle/caches/transforms-3/4afc4a05ed28b4189a5a9344212df547/transformed/play-services-basement-18.3.0/AndroidManifest.xml:20:5-24:19
 MERGED from [com.google.android.gms:play-services-basement:18.3.0] /home/luca/.gradle/caches/transforms-3/4afc4a05ed28b4189a5a9344212df547/transformed/play-services-basement-18.3.0/AndroidManifest.xml:20:5-24:19
+MERGED from [androidx.core:core:1.12.0] /home/luca/.gradle/caches/transforms-3/f678e523ba7a3129e16879ef09298de1/transformed/core-1.12.0/AndroidManifest.xml:28:5-89
+MERGED from [androidx.core:core:1.12.0] /home/luca/.gradle/caches/transforms-3/f678e523ba7a3129e16879ef09298de1/transformed/core-1.12.0/AndroidManifest.xml:28:5-89
 MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/luca/.gradle/caches/transforms-3/3516aee38d1b99ac9975b40268da8dd5/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:24:5-25:19
 MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/luca/.gradle/caches/transforms-3/3516aee38d1b99ac9975b40268da8dd5/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:24:5-25:19
 MERGED from [androidx.profileinstaller:profileinstaller:1.3.0] /home/luca/.gradle/caches/transforms-3/6da265f4b77c2f3ac2acfa06a6514a0b/transformed/profileinstaller-1.3.0/AndroidManifest.xml:23:5-53:19
@@ -134,83 +149,61 @@ MERGED from [androidx.startup:startup-runtime:1.1.1] /home/luca/.gradle/caches/t
 	android:appComponentFactory
 		ADDED from [androidx.core:core:1.12.0] /home/luca/.gradle/caches/transforms-3/f678e523ba7a3129e16879ef09298de1/transformed/core-1.12.0/AndroidManifest.xml:28:18-86
 	android:supportsRtl
-		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:14:9-35
+		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:15:9-35
 	android:label
-		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:12:9-35
+		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:13:9-35
 	android:roundIcon
-		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:13:9-50
+		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:14:9-50
 	android:icon
-		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:11:9-45
+		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:12:9-45
 	android:allowBackup
-		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:10:9-35
+		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:11:9-35
 	android:theme
-		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:15:9-48
+		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:16:9-48
 activity#com.example.gymtracker.MainActivity
-ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:17:9-25:20
+ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:18:9-26:20
 	android:exported
-		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:19:13-36
+		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:20:13-36
 	android:theme
-		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:20:13-52
+		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:21:13-52
 	android:name
-		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:18:13-41
+		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:19:13-41
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
-ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:21:13-24:29
+ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:22:13-25:29
 action#android.intent.action.MAIN
-ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:22:17-69
+ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:23:17-69
 	android:name
-		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:22:25-66
+		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:23:25-66
 category#android.intent.category.LAUNCHER
-ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:23:17-77
+ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:24:17-77
 	android:name
-		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:23:27-74
+		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:24:27-74
 service#com.example.gymtracker.services.WorkoutNotificationService
-ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:28:9-36:19
+ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:29:9-37:19
 	android:enabled
-		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:30:13-35
+		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:31:13-35
 	android:exported
-		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:31:13-37
+		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:32:13-37
 	android:foregroundServiceType
-		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:32:13-55
+		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:33:13-55
 	android:name
-		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:29:13-64
+		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:30:13-64
 property
-ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:33:13-35:72
+ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:34:13-36:72
 	android:value
-		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:35:17-69
+		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:36:17-69
 	android:name
-		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:34:17-88
+		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:35:17-88
+meta-data#android.support.FILE_PROVIDER_PATHS
+ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:44:13-46:54
+	android:resource
+		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:46:17-51
+	android:name
+		ADDED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml:45:17-67
 uses-sdk
 INJECTED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml
 INJECTED from /home/luca/Scrivania/Personale/GymTracker/app/src/main/AndroidManifest.xml
-MERGED from [androidx.compose.material3:material3-android:1.2.0] /home/luca/.gradle/caches/transforms-3/fcb32e754550e7e648172b583bdc46db/transformed/material3-release/AndroidManifest.xml:20:5-44
-MERGED from [androidx.compose.material3:material3-android:1.2.0] /home/luca/.gradle/caches/transforms-3/fcb32e754550e7e648172b583bdc46db/transformed/material3-release/AndroidManifest.xml:20:5-44
-MERGED from [androidx.compose.animation:animation-core-android:1.6.1] /home/luca/.gradle/caches/transforms-3/44770ca6cc05c6ede63d04c108c9ce96/transformed/animation-core-release/AndroidManifest.xml:5:5-44
-MERGED from [androidx.compose.animation:animation-core-android:1.6.1] /home/luca/.gradle/caches/transforms-3/44770ca6cc05c6ede63d04c108c9ce96/transformed/animation-core-release/AndroidManifest.xml:5:5-44
-MERGED from [androidx.compose.material:material-icons-core-android:1.6.1] /home/luca/.gradle/caches/transforms-3/ae07e7570a4f344e61caa5752d842b86/transformed/material-icons-core-release/AndroidManifest.xml:5:5-44
-MERGED from [androidx.compose.material:material-icons-core-android:1.6.1] /home/luca/.gradle/caches/transforms-3/ae07e7570a4f344e61caa5752d842b86/transformed/material-icons-core-release/AndroidManifest.xml:5:5-44
-MERGED from [androidx.compose.material:material-ripple-android:1.6.1] /home/luca/.gradle/caches/transforms-3/3a55c4a345f45d71f622530f02188074/transformed/material-ripple-release/AndroidManifest.xml:5:5-44
-MERGED from [androidx.compose.material:material-ripple-android:1.6.1] /home/luca/.gradle/caches/transforms-3/3a55c4a345f45d71f622530f02188074/transformed/material-ripple-release/AndroidManifest.xml:5:5-44
-MERGED from [androidx.compose.animation:animation-android:1.6.1] /home/luca/.gradle/caches/transforms-3/fef6bfaa61fa80a76a4b62fe7c801d90/transformed/animation-release/AndroidManifest.xml:5:5-44
-MERGED from [androidx.compose.animation:animation-android:1.6.1] /home/luca/.gradle/caches/transforms-3/fef6bfaa61fa80a76a4b62fe7c801d90/transformed/animation-release/AndroidManifest.xml:5:5-44
-MERGED from [androidx.compose.foundation:foundation-layout-android:1.6.1] /home/luca/.gradle/caches/transforms-3/d29c218c171cb639baccf8fc8be174cd/transformed/foundation-layout-release/AndroidManifest.xml:5:5-44
-MERGED from [androidx.compose.foundation:foundation-layout-android:1.6.1] /home/luca/.gradle/caches/transforms-3/d29c218c171cb639baccf8fc8be174cd/transformed/foundation-layout-release/AndroidManifest.xml:5:5-44
-MERGED from [androidx.compose.foundation:foundation-android:1.6.1] /home/luca/.gradle/caches/transforms-3/7e3591afe4b686f9b5c6494ff4521a4c/transformed/foundation-release/AndroidManifest.xml:5:5-44
-MERGED from [androidx.compose.foundation:foundation-android:1.6.1] /home/luca/.gradle/caches/transforms-3/7e3591afe4b686f9b5c6494ff4521a4c/transformed/foundation-release/AndroidManifest.xml:5:5-44
-MERGED from [androidx.compose.ui:ui-unit-android:1.6.1] /home/luca/.gradle/caches/transforms-3/a7e9bea42759a19aea48672a66ab82b5/transformed/ui-unit-release/AndroidManifest.xml:5:5-44
-MERGED from [androidx.compose.ui:ui-unit-android:1.6.1] /home/luca/.gradle/caches/transforms-3/a7e9bea42759a19aea48672a66ab82b5/transformed/ui-unit-release/AndroidManifest.xml:5:5-44
-MERGED from [androidx.compose.ui:ui-geometry-android:1.6.1] /home/luca/.gradle/caches/transforms-3/0625c3d8471367fc6cb14c5097a1046e/transformed/ui-geometry-release/AndroidManifest.xml:5:5-44
-MERGED from [androidx.compose.ui:ui-geometry-android:1.6.1] /home/luca/.gradle/caches/transforms-3/0625c3d8471367fc6cb14c5097a1046e/transformed/ui-geometry-release/AndroidManifest.xml:5:5-44
-MERGED from [androidx.compose.ui:ui-util-android:1.6.1] /home/luca/.gradle/caches/transforms-3/e6eaf2290c687cb6888d6e602f8b674e/transformed/ui-util-release/AndroidManifest.xml:5:5-44
-MERGED from [androidx.compose.ui:ui-util-android:1.6.1] /home/luca/.gradle/caches/transforms-3/e6eaf2290c687cb6888d6e602f8b674e/transformed/ui-util-release/AndroidManifest.xml:5:5-44
-MERGED from [androidx.compose.ui:ui-text-android:1.6.1] /home/luca/.gradle/caches/transforms-3/e4dab1eff45111ae5dc24c4dae368e66/transformed/ui-text-release/AndroidManifest.xml:5:5-44
-MERGED from [androidx.compose.ui:ui-text-android:1.6.1] /home/luca/.gradle/caches/transforms-3/e4dab1eff45111ae5dc24c4dae368e66/transformed/ui-text-release/AndroidManifest.xml:5:5-44
-MERGED from [androidx.compose.ui:ui-graphics-android:1.6.1] /home/luca/.gradle/caches/transforms-3/b69d3be6398bd1efd9dbca5fcef9a74e/transformed/ui-graphics-release/AndroidManifest.xml:5:5-44
-MERGED from [androidx.compose.ui:ui-graphics-android:1.6.1] /home/luca/.gradle/caches/transforms-3/b69d3be6398bd1efd9dbca5fcef9a74e/transformed/ui-graphics-release/AndroidManifest.xml:5:5-44
-MERGED from [androidx.compose.ui:ui-tooling-preview-android:1.6.1] /home/luca/.gradle/caches/transforms-3/36b12542779e2b13663af2b81c890166/transformed/ui-tooling-preview-release/AndroidManifest.xml:20:5-44
-MERGED from [androidx.compose.ui:ui-tooling-preview-android:1.6.1] /home/luca/.gradle/caches/transforms-3/36b12542779e2b13663af2b81c890166/transformed/ui-tooling-preview-release/AndroidManifest.xml:20:5-44
-MERGED from [androidx.compose.ui:ui-android:1.6.1] /home/luca/.gradle/caches/transforms-3/ff4a51c339e82c71ae3a7136c483ac46/transformed/ui-release/AndroidManifest.xml:5:5-44
-MERGED from [androidx.compose.ui:ui-android:1.6.1] /home/luca/.gradle/caches/transforms-3/ff4a51c339e82c71ae3a7136c483ac46/transformed/ui-release/AndroidManifest.xml:5:5-44
 MERGED from [com.google.firebase:firebase-database-ktx:21.0.0] /home/luca/.gradle/caches/transforms-3/4241bec52543cdac4b6717871493f81c/transformed/firebase-database-ktx-21.0.0/AndroidManifest.xml:5:5-44
 MERGED from [com.google.firebase:firebase-database-ktx:21.0.0] /home/luca/.gradle/caches/transforms-3/4241bec52543cdac4b6717871493f81c/transformed/firebase-database-ktx-21.0.0/AndroidManifest.xml:5:5-44
 MERGED from [com.google.firebase:firebase-firestore-ktx:25.0.0] /home/luca/.gradle/caches/transforms-3/c557f55edb86dd056052daecfa71d967/transformed/firebase-firestore-ktx-25.0.0/AndroidManifest.xml:5:5-44
@@ -231,14 +224,36 @@ MERGED from [com.google.firebase:firebase-database-collection:18.0.1] /home/luca
 MERGED from [com.google.firebase:firebase-database-collection:18.0.1] /home/luca/.gradle/caches/transforms-3/8b9ba408937af969dc792d27431b9c48/transformed/firebase-database-collection-18.0.1/AndroidManifest.xml:5:5-7:41
 MERGED from [com.google.android.gms:play-services-base:18.1.0] /home/luca/.gradle/caches/transforms-3/1e553d50dd57f7b43b9e4b6ac2291249/transformed/play-services-base-18.1.0/AndroidManifest.xml:18:5-43
 MERGED from [com.google.android.gms:play-services-base:18.1.0] /home/luca/.gradle/caches/transforms-3/1e553d50dd57f7b43b9e4b6ac2291249/transformed/play-services-base-18.1.0/AndroidManifest.xml:18:5-43
-MERGED from [androidx.autofill:autofill:1.0.0] /home/luca/.gradle/caches/transforms-3/1fa1cb406f7cdc715157d5b488a97e2c/transformed/autofill-1.0.0/AndroidManifest.xml:20:5-22:41
-MERGED from [androidx.autofill:autofill:1.0.0] /home/luca/.gradle/caches/transforms-3/1fa1cb406f7cdc715157d5b488a97e2c/transformed/autofill-1.0.0/AndroidManifest.xml:20:5-22:41
-MERGED from [androidx.customview:customview-poolingcontainer:1.0.0] /home/luca/.gradle/caches/transforms-3/ab77ae8bbd9ab10407d55faca395adfc/transformed/customview-poolingcontainer-1.0.0/AndroidManifest.xml:20:5-21:38
-MERGED from [androidx.customview:customview-poolingcontainer:1.0.0] /home/luca/.gradle/caches/transforms-3/ab77ae8bbd9ab10407d55faca395adfc/transformed/customview-poolingcontainer-1.0.0/AndroidManifest.xml:20:5-21:38
+MERGED from [androidx.compose.material3:material3-android:1.2.0] /home/luca/.gradle/caches/transforms-3/fcb32e754550e7e648172b583bdc46db/transformed/material3-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.material3:material3-android:1.2.0] /home/luca/.gradle/caches/transforms-3/fcb32e754550e7e648172b583bdc46db/transformed/material3-release/AndroidManifest.xml:20:5-44
 MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] /home/luca/.gradle/caches/transforms-3/0b8b9203ee3607256f56fbf2f4bb6b80/transformed/savedstate-ktx-1.2.1/AndroidManifest.xml:20:5-44
 MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] /home/luca/.gradle/caches/transforms-3/0b8b9203ee3607256f56fbf2f4bb6b80/transformed/savedstate-ktx-1.2.1/AndroidManifest.xml:20:5-44
 MERGED from [androidx.savedstate:savedstate:1.2.1] /home/luca/.gradle/caches/transforms-3/68a82d599de0e47f6fc4c99522482f4e/transformed/savedstate-1.2.1/AndroidManifest.xml:20:5-44
 MERGED from [androidx.savedstate:savedstate:1.2.1] /home/luca/.gradle/caches/transforms-3/68a82d599de0e47f6fc4c99522482f4e/transformed/savedstate-1.2.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.animation:animation-core-android:1.6.1] /home/luca/.gradle/caches/transforms-3/44770ca6cc05c6ede63d04c108c9ce96/transformed/animation-core-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.animation:animation-core-android:1.6.1] /home/luca/.gradle/caches/transforms-3/44770ca6cc05c6ede63d04c108c9ce96/transformed/animation-core-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.material:material-icons-core-android:1.6.1] /home/luca/.gradle/caches/transforms-3/ae07e7570a4f344e61caa5752d842b86/transformed/material-icons-core-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.material:material-icons-core-android:1.6.1] /home/luca/.gradle/caches/transforms-3/ae07e7570a4f344e61caa5752d842b86/transformed/material-icons-core-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.material:material-ripple-android:1.6.1] /home/luca/.gradle/caches/transforms-3/3a55c4a345f45d71f622530f02188074/transformed/material-ripple-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.material:material-ripple-android:1.6.1] /home/luca/.gradle/caches/transforms-3/3a55c4a345f45d71f622530f02188074/transformed/material-ripple-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.animation:animation-android:1.6.1] /home/luca/.gradle/caches/transforms-3/fef6bfaa61fa80a76a4b62fe7c801d90/transformed/animation-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.animation:animation-android:1.6.1] /home/luca/.gradle/caches/transforms-3/fef6bfaa61fa80a76a4b62fe7c801d90/transformed/animation-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.foundation:foundation-layout-android:1.6.1] /home/luca/.gradle/caches/transforms-3/d29c218c171cb639baccf8fc8be174cd/transformed/foundation-layout-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.foundation:foundation-layout-android:1.6.1] /home/luca/.gradle/caches/transforms-3/d29c218c171cb639baccf8fc8be174cd/transformed/foundation-layout-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.foundation:foundation-android:1.6.1] /home/luca/.gradle/caches/transforms-3/7e3591afe4b686f9b5c6494ff4521a4c/transformed/foundation-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.foundation:foundation-android:1.6.1] /home/luca/.gradle/caches/transforms-3/7e3591afe4b686f9b5c6494ff4521a4c/transformed/foundation-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-unit-android:1.6.1] /home/luca/.gradle/caches/transforms-3/a7e9bea42759a19aea48672a66ab82b5/transformed/ui-unit-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-unit-android:1.6.1] /home/luca/.gradle/caches/transforms-3/a7e9bea42759a19aea48672a66ab82b5/transformed/ui-unit-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-geometry-android:1.6.1] /home/luca/.gradle/caches/transforms-3/0625c3d8471367fc6cb14c5097a1046e/transformed/ui-geometry-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-geometry-android:1.6.1] /home/luca/.gradle/caches/transforms-3/0625c3d8471367fc6cb14c5097a1046e/transformed/ui-geometry-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-util-android:1.6.1] /home/luca/.gradle/caches/transforms-3/e6eaf2290c687cb6888d6e602f8b674e/transformed/ui-util-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-util-android:1.6.1] /home/luca/.gradle/caches/transforms-3/e6eaf2290c687cb6888d6e602f8b674e/transformed/ui-util-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-graphics-android:1.6.1] /home/luca/.gradle/caches/transforms-3/b69d3be6398bd1efd9dbca5fcef9a74e/transformed/ui-graphics-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-graphics-android:1.6.1] /home/luca/.gradle/caches/transforms-3/b69d3be6398bd1efd9dbca5fcef9a74e/transformed/ui-graphics-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-tooling-preview-android:1.6.1] /home/luca/.gradle/caches/transforms-3/36b12542779e2b13663af2b81c890166/transformed/ui-tooling-preview-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.ui:ui-tooling-preview-android:1.6.1] /home/luca/.gradle/caches/transforms-3/36b12542779e2b13663af2b81c890166/transformed/ui-tooling-preview-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.ui:ui-text-android:1.6.1] /home/luca/.gradle/caches/transforms-3/e4dab1eff45111ae5dc24c4dae368e66/transformed/ui-text-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-text-android:1.6.1] /home/luca/.gradle/caches/transforms-3/e4dab1eff45111ae5dc24c4dae368e66/transformed/ui-text-release/AndroidManifest.xml:5:5-44
 MERGED from [androidx.emoji2:emoji2:1.3.0] /home/luca/.gradle/caches/transforms-3/4ed8f53c45b0e08835d5183f5acbf0cf/transformed/emoji2-1.3.0/AndroidManifest.xml:21:5-44
 MERGED from [androidx.emoji2:emoji2:1.3.0] /home/luca/.gradle/caches/transforms-3/4ed8f53c45b0e08835d5183f5acbf0cf/transformed/emoji2-1.3.0/AndroidManifest.xml:21:5-44
 MERGED from [androidx.loader:loader:1.0.0] /home/luca/.gradle/caches/transforms-3/3116916f54c4f8134e0c247cb4b1625c/transformed/loader-1.0.0/AndroidManifest.xml:20:5-44
@@ -251,14 +266,6 @@ MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.6.1] /home/luca/.gradl
 MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.6.1] /home/luca/.gradle/caches/transforms-3/747a41cea37db7249a7a1ad0990301c6/transformed/lifecycle-livedata-core-2.6.1/AndroidManifest.xml:20:5-44
 MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.6.1] /home/luca/.gradle/caches/transforms-3/3d6f70140c231ddb40c4134f1a3624ba/transformed/lifecycle-viewmodel-savedstate-2.6.1/AndroidManifest.xml:20:5-44
 MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.6.1] /home/luca/.gradle/caches/transforms-3/3d6f70140c231ddb40c4134f1a3624ba/transformed/lifecycle-viewmodel-savedstate-2.6.1/AndroidManifest.xml:20:5-44
-MERGED from [androidx.core:core-ktx:1.12.0] /home/luca/.gradle/caches/transforms-3/ec3aa15701592b1dde34281cdc1b1a71/transformed/core-ktx-1.12.0/AndroidManifest.xml:5:5-44
-MERGED from [androidx.core:core-ktx:1.12.0] /home/luca/.gradle/caches/transforms-3/ec3aa15701592b1dde34281cdc1b1a71/transformed/core-ktx-1.12.0/AndroidManifest.xml:5:5-44
-MERGED from [androidx.viewpager:viewpager:1.0.0] /home/luca/.gradle/caches/transforms-3/c91a4e15fc471cb2e88a2459817d3f45/transformed/viewpager-1.0.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.viewpager:viewpager:1.0.0] /home/luca/.gradle/caches/transforms-3/c91a4e15fc471cb2e88a2459817d3f45/transformed/viewpager-1.0.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.customview:customview:1.0.0] /home/luca/.gradle/caches/transforms-3/81aea3e51f3ef07facc03290ef054de0/transformed/customview-1.0.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.customview:customview:1.0.0] /home/luca/.gradle/caches/transforms-3/81aea3e51f3ef07facc03290ef054de0/transformed/customview-1.0.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.core:core:1.12.0] /home/luca/.gradle/caches/transforms-3/f678e523ba7a3129e16879ef09298de1/transformed/core-1.12.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.core:core:1.12.0] /home/luca/.gradle/caches/transforms-3/f678e523ba7a3129e16879ef09298de1/transformed/core-1.12.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.lifecycle:lifecycle-runtime:2.6.1] /home/luca/.gradle/caches/transforms-3/058bbeef5197e8eae56fb947f649fee3/transformed/lifecycle-runtime-2.6.1/AndroidManifest.xml:5:5-44
 MERGED from [androidx.lifecycle:lifecycle-runtime:2.6.1] /home/luca/.gradle/caches/transforms-3/058bbeef5197e8eae56fb947f649fee3/transformed/lifecycle-runtime-2.6.1/AndroidManifest.xml:5:5-44
 MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1] /home/luca/.gradle/caches/transforms-3/558bf6224153e30cfa760b3bb6b0757c/transformed/lifecycle-viewmodel-ktx-2.6.1/AndroidManifest.xml:20:5-44
@@ -283,12 +290,28 @@ MERGED from [androidx.activity:activity-ktx:1.8.2] /home/luca/.gradle/caches/tra
 MERGED from [androidx.activity:activity-ktx:1.8.2] /home/luca/.gradle/caches/transforms-3/c49bb3cfa5b1a4c7f0b395f507b8d2c9/transformed/activity-ktx-1.8.2/AndroidManifest.xml:5:5-44
 MERGED from [androidx.activity:activity-compose:1.8.2] /home/luca/.gradle/caches/transforms-3/6ef72d5f6dead1b01a2a4f42d3d3f682/transformed/activity-compose-1.8.2/AndroidManifest.xml:5:5-44
 MERGED from [androidx.activity:activity-compose:1.8.2] /home/luca/.gradle/caches/transforms-3/6ef72d5f6dead1b01a2a4f42d3d3f682/transformed/activity-compose-1.8.2/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-android:1.6.1] /home/luca/.gradle/caches/transforms-3/ff4a51c339e82c71ae3a7136c483ac46/transformed/ui-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-android:1.6.1] /home/luca/.gradle/caches/transforms-3/ff4a51c339e82c71ae3a7136c483ac46/transformed/ui-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.autofill:autofill:1.0.0] /home/luca/.gradle/caches/transforms-3/1fa1cb406f7cdc715157d5b488a97e2c/transformed/autofill-1.0.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.autofill:autofill:1.0.0] /home/luca/.gradle/caches/transforms-3/1fa1cb406f7cdc715157d5b488a97e2c/transformed/autofill-1.0.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.viewpager:viewpager:1.0.0] /home/luca/.gradle/caches/transforms-3/c91a4e15fc471cb2e88a2459817d3f45/transformed/viewpager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.viewpager:viewpager:1.0.0] /home/luca/.gradle/caches/transforms-3/c91a4e15fc471cb2e88a2459817d3f45/transformed/viewpager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.customview:customview:1.0.0] /home/luca/.gradle/caches/transforms-3/81aea3e51f3ef07facc03290ef054de0/transformed/customview-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.customview:customview:1.0.0] /home/luca/.gradle/caches/transforms-3/81aea3e51f3ef07facc03290ef054de0/transformed/customview-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.core:core:1.12.0] /home/luca/.gradle/caches/transforms-3/f678e523ba7a3129e16879ef09298de1/transformed/core-1.12.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.core:core:1.12.0] /home/luca/.gradle/caches/transforms-3/f678e523ba7a3129e16879ef09298de1/transformed/core-1.12.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.customview:customview-poolingcontainer:1.0.0] /home/luca/.gradle/caches/transforms-3/ab77ae8bbd9ab10407d55faca395adfc/transformed/customview-poolingcontainer-1.0.0/AndroidManifest.xml:20:5-21:38
+MERGED from [androidx.customview:customview-poolingcontainer:1.0.0] /home/luca/.gradle/caches/transforms-3/ab77ae8bbd9ab10407d55faca395adfc/transformed/customview-poolingcontainer-1.0.0/AndroidManifest.xml:20:5-21:38
+MERGED from [androidx.core:core-ktx:1.12.0] /home/luca/.gradle/caches/transforms-3/ec3aa15701592b1dde34281cdc1b1a71/transformed/core-ktx-1.12.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.core:core-ktx:1.12.0] /home/luca/.gradle/caches/transforms-3/ec3aa15701592b1dde34281cdc1b1a71/transformed/core-ktx-1.12.0/AndroidManifest.xml:5:5-44
 MERGED from [androidx.annotation:annotation-experimental:1.4.0] /home/luca/.gradle/caches/transforms-3/f70d5185d5420c99129a7d49a1e6a386/transformed/annotation-experimental-1.4.0/AndroidManifest.xml:5:5-44
 MERGED from [androidx.annotation:annotation-experimental:1.4.0] /home/luca/.gradle/caches/transforms-3/f70d5185d5420c99129a7d49a1e6a386/transformed/annotation-experimental-1.4.0/AndroidManifest.xml:5:5-44
 MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/luca/.gradle/caches/transforms-3/3516aee38d1b99ac9975b40268da8dd5/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:20:5-22:41
 MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/luca/.gradle/caches/transforms-3/3516aee38d1b99ac9975b40268da8dd5/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:20:5-22:41
 MERGED from [com.google.firebase:firebase-components:18.0.0] /home/luca/.gradle/caches/transforms-3/a57bedea032a41b5d14b743b46a88109/transformed/firebase-components-18.0.0/AndroidManifest.xml:18:5-44
 MERGED from [com.google.firebase:firebase-components:18.0.0] /home/luca/.gradle/caches/transforms-3/a57bedea032a41b5d14b743b46a88109/transformed/firebase-components-18.0.0/AndroidManifest.xml:18:5-44
+MERGED from [androidx.interpolator:interpolator:1.0.0] /home/luca/.gradle/caches/transforms-3/96054b8afff8c69ce6212f1d75aba3de/transformed/interpolator-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.interpolator:interpolator:1.0.0] /home/luca/.gradle/caches/transforms-3/96054b8afff8c69ce6212f1d75aba3de/transformed/interpolator-1.0.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.profileinstaller:profileinstaller:1.3.0] /home/luca/.gradle/caches/transforms-3/6da265f4b77c2f3ac2acfa06a6514a0b/transformed/profileinstaller-1.3.0/AndroidManifest.xml:21:5-44
 MERGED from [androidx.profileinstaller:profileinstaller:1.3.0] /home/luca/.gradle/caches/transforms-3/6da265f4b77c2f3ac2acfa06a6514a0b/transformed/profileinstaller-1.3.0/AndroidManifest.xml:21:5-44
 MERGED from [androidx.startup:startup-runtime:1.1.1] /home/luca/.gradle/caches/transforms-3/05cc00abbea35cfea9862748b5f9d28c/transformed/startup-runtime-1.1.1/AndroidManifest.xml:21:5-23:41
@@ -297,8 +320,6 @@ MERGED from [androidx.tracing:tracing:1.0.0] /home/luca/.gradle/caches/transform
 MERGED from [androidx.tracing:tracing:1.0.0] /home/luca/.gradle/caches/transforms-3/5447fcffb5541cd56ac1a6b99230f7b2/transformed/tracing-1.0.0/AndroidManifest.xml:20:5-22:41
 MERGED from [androidx.arch.core:core-runtime:2.2.0] /home/luca/.gradle/caches/transforms-3/412b2524f4083fc11eda6cb4151f7798/transformed/core-runtime-2.2.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.arch.core:core-runtime:2.2.0] /home/luca/.gradle/caches/transforms-3/412b2524f4083fc11eda6cb4151f7798/transformed/core-runtime-2.2.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.interpolator:interpolator:1.0.0] /home/luca/.gradle/caches/transforms-3/96054b8afff8c69ce6212f1d75aba3de/transformed/interpolator-1.0.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.interpolator:interpolator:1.0.0] /home/luca/.gradle/caches/transforms-3/96054b8afff8c69ce6212f1d75aba3de/transformed/interpolator-1.0.0/AndroidManifest.xml:20:5-44
 MERGED from [io.grpc:grpc-android:1.57.2] /home/luca/.gradle/caches/transforms-3/367d1fc3a8813c3e53ba12edd82dc906/transformed/grpc-android-1.57.2/AndroidManifest.xml:5:5-44
 MERGED from [io.grpc:grpc-android:1.57.2] /home/luca/.gradle/caches/transforms-3/367d1fc3a8813c3e53ba12edd82dc906/transformed/grpc-android-1.57.2/AndroidManifest.xml:5:5-44
 MERGED from [com.google.firebase:protolite-well-known-types:18.0.0] /home/luca/.gradle/caches/transforms-3/88f8bbf475698c441fc6c7d421107394/transformed/protolite-well-known-types-18.0.0/AndroidManifest.xml:7:5-9:41
@@ -431,6 +452,12 @@ ADDED from [androidx.lifecycle:lifecycle-process:2.6.1] /home/luca/.gradle/cache
 		ADDED from [androidx.lifecycle:lifecycle-process:2.6.1] /home/luca/.gradle/caches/transforms-3/d0ba1df430fa270c21289478c53ee0a1/transformed/lifecycle-process-2.6.1/AndroidManifest.xml:31:17-49
 	android:name
 		ADDED from [androidx.lifecycle:lifecycle-process:2.6.1] /home/luca/.gradle/caches/transforms-3/d0ba1df430fa270c21289478c53ee0a1/transformed/lifecycle-process-2.6.1/AndroidManifest.xml:30:17-78
+meta-data#com.google.android.gms.version
+ADDED from [com.google.android.gms:play-services-basement:18.3.0] /home/luca/.gradle/caches/transforms-3/4afc4a05ed28b4189a5a9344212df547/transformed/play-services-basement-18.3.0/AndroidManifest.xml:21:9-23:69
+	android:value
+		ADDED from [com.google.android.gms:play-services-basement:18.3.0] /home/luca/.gradle/caches/transforms-3/4afc4a05ed28b4189a5a9344212df547/transformed/play-services-basement-18.3.0/AndroidManifest.xml:23:13-66
+	android:name
+		ADDED from [com.google.android.gms:play-services-basement:18.3.0] /home/luca/.gradle/caches/transforms-3/4afc4a05ed28b4189a5a9344212df547/transformed/play-services-basement-18.3.0/AndroidManifest.xml:22:13-58
 permission#${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
 ADDED from [androidx.core:core:1.12.0] /home/luca/.gradle/caches/transforms-3/f678e523ba7a3129e16879ef09298de1/transformed/core-1.12.0/AndroidManifest.xml:22:5-24:47
 	android:protectionLevel
@@ -451,12 +478,6 @@ uses-permission#com.example.gymtracker.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
 ADDED from [androidx.core:core:1.12.0] /home/luca/.gradle/caches/transforms-3/f678e523ba7a3129e16879ef09298de1/transformed/core-1.12.0/AndroidManifest.xml:26:5-97
 	android:name
 		ADDED from [androidx.core:core:1.12.0] /home/luca/.gradle/caches/transforms-3/f678e523ba7a3129e16879ef09298de1/transformed/core-1.12.0/AndroidManifest.xml:26:22-94
-meta-data#com.google.android.gms.version
-ADDED from [com.google.android.gms:play-services-basement:18.3.0] /home/luca/.gradle/caches/transforms-3/4afc4a05ed28b4189a5a9344212df547/transformed/play-services-basement-18.3.0/AndroidManifest.xml:21:9-23:69
-	android:value
-		ADDED from [com.google.android.gms:play-services-basement:18.3.0] /home/luca/.gradle/caches/transforms-3/4afc4a05ed28b4189a5a9344212df547/transformed/play-services-basement-18.3.0/AndroidManifest.xml:23:13-66
-	android:name
-		ADDED from [com.google.android.gms:play-services-basement:18.3.0] /home/luca/.gradle/caches/transforms-3/4afc4a05ed28b4189a5a9344212df547/transformed/play-services-basement-18.3.0/AndroidManifest.xml:22:13-58
 meta-data#androidx.profileinstaller.ProfileInstallerInitializer
 ADDED from [androidx.profileinstaller:profileinstaller:1.3.0] /home/luca/.gradle/caches/transforms-3/6da265f4b77c2f3ac2acfa06a6514a0b/transformed/profileinstaller-1.3.0/AndroidManifest.xml:29:13-31:52
 	android:value
