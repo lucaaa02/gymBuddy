@@ -82,6 +82,8 @@ object FirebaseManager {
         Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING
     )
 
+    fun chiaveUtente(nickname: String): String = chiaveNickname(nickname)
+
     private fun hashPassword(password: String, salt: ByteArray): ByteArray {
         val spec = PBEKeySpec(password.toCharArray(), salt, 120_000, 256)
         return try {
@@ -176,17 +178,6 @@ object FirebaseManager {
         })
     }
 
-    fun ascoltaConnessione(onStato: (Boolean) -> Unit) {
-        db.getReference(".info/connected").addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                onStato(snapshot.getValue(Boolean::class.java) ?: false)
-            }
-            override fun onCancelled(error: DatabaseError) {
-                onStato(false)
-            }
-        })
-    }
-
     fun aggiornaAllenamentoSeProprietario(
         allenamento: AllenamentoCompletato,
         proprietario: String,
@@ -230,6 +221,128 @@ object FirebaseManager {
             }
             override fun onCancelled(error: DatabaseError) {}
         })
+    }
+
+    fun ascoltaAmici(nickname: String, onUpdate: (List<String>) -> Unit) {
+        db.getReference("amicizie").child(chiaveNickname(nickname)).child("amici")
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    onUpdate(snapshot.children.mapNotNull { it.getValue(String::class.java) }.sortedBy { it.lowercase() })
+                }
+                override fun onCancelled(error: DatabaseError) {}
+            })
+    }
+
+    fun ascoltaRichiesteAmicizia(nickname: String, onUpdate: (List<RichiestaAmicizia>) -> Unit) {
+        db.getReference("amicizie").child(chiaveNickname(nickname)).child("richiesteRicevute")
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    onUpdate(snapshot.children.mapNotNull { richiesta ->
+                        val id = richiesta.key ?: return@mapNotNull null
+                        val nome = richiesta.getValue(String::class.java) ?: return@mapNotNull null
+                        RichiestaAmicizia(idUtente = id, nickname = nome)
+                    }.sortedBy { it.nickname.lowercase() })
+                }
+                override fun onCancelled(error: DatabaseError) {}
+            })
+    }
+
+    fun ascoltaRichiesteInviate(nickname: String, onUpdate: (List<String>) -> Unit) {
+        db.getReference("amicizie").child(chiaveNickname(nickname)).child("richiesteInviate")
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    onUpdate(snapshot.children.mapNotNull { it.key })
+                }
+                override fun onCancelled(error: DatabaseError) {}
+            })
+    }
+
+    fun inviaRichiestaAmicizia(mittente: String, destinatario: String, onResult: (Boolean, String?) -> Unit) {
+        val nomeMittente = mittente.trim()
+        val chiaveMittente = chiaveNickname(nomeMittente)
+        val chiaveDestinatario = chiaveNickname(destinatario)
+        if (chiaveMittente == chiaveDestinatario) {
+            onResult(false, "Non puoi inviare una richiesta a te stesso.")
+            return
+        }
+
+        db.getReference("profili").child(chiaveDestinatario).get()
+            .addOnSuccessListener profiloSuccess@ { profilo ->
+                val nomeDestinatario = profilo.child("nickname").getValue(String::class.java)
+                if (nomeDestinatario.isNullOrBlank()) {
+                    onResult(false, "Questo profilo non è più disponibile.")
+                    return@profiloSuccess
+                }
+                val root = db.getReference()
+                root.child("amicizie").child(chiaveMittente).child("amici").child(chiaveDestinatario).get()
+                    .addOnSuccessListener amiciziaSuccess@ { amicizia ->
+                        if (amicizia.exists()) {
+                            onResult(false, "Siete già amici.")
+                            return@amiciziaSuccess
+                        }
+                        root.child("amicizie").child(chiaveMittente).child("richiesteInviate").child(chiaveDestinatario).get()
+                            .addOnSuccessListener inviataSuccess@ { inviata ->
+                                if (inviata.exists()) {
+                                    onResult(false, "Hai già inviato una richiesta a questo utente.")
+                                    return@inviataSuccess
+                                }
+                                root.child("amicizie").child(chiaveMittente).child("richiesteRicevute").child(chiaveDestinatario).get()
+                                    .addOnSuccessListener ricevutaSuccess@ { ricevuta ->
+                                        if (ricevuta.exists()) {
+                                            onResult(false, "Hai già una richiesta ricevuta da questo utente: accettala dalla schermata Amici.")
+                                            return@ricevutaSuccess
+                                        }
+                                        val aggiornamenti = mapOf(
+                                            "/amicizie/$chiaveMittente/richiesteInviate/$chiaveDestinatario" to nomeDestinatario,
+                                            "/amicizie/$chiaveDestinatario/richiesteRicevute/$chiaveMittente" to nomeMittente
+                                        )
+                                        root.updateChildren(aggiornamenti)
+                                            .addOnSuccessListener { onResult(true, "Richiesta inviata a $nomeDestinatario.") }
+                                            .addOnFailureListener { onResult(false, "Richiesta non inviata. Controlla la connessione e riprova.") }
+                                    }
+                                    .addOnFailureListener { onResult(false, "Impossibile verificare le richieste ricevute.") }
+                            }
+                            .addOnFailureListener { onResult(false, "Impossibile verificare le richieste inviate.") }
+                    }
+                    .addOnFailureListener { onResult(false, "Impossibile verificare l'amicizia.") }
+            }
+            .addOnFailureListener { onResult(false, "Impossibile trovare il profilo. Controlla la connessione.") }
+    }
+
+    fun accettaRichiestaAmicizia(ricevente: String, richiesta: RichiestaAmicizia, onResult: (Boolean, String?) -> Unit) {
+        val chiaveRicevente = chiaveNickname(ricevente)
+        val richiestaRef = db.getReference("amicizie").child(chiaveRicevente)
+            .child("richiesteRicevute").child(richiesta.idUtente)
+        richiestaRef.get().addOnSuccessListener { snapshot ->
+            val nicknameMittente = snapshot.getValue(String::class.java)
+            if (nicknameMittente.isNullOrBlank()) {
+                onResult(false, "La richiesta non è più disponibile.")
+                return@addOnSuccessListener
+            }
+            val root = db.getReference()
+            val aggiornamenti = mapOf<String, Any?>(
+                "/amicizie/$chiaveRicevente/amici/${richiesta.idUtente}" to nicknameMittente,
+                "/amicizie/${richiesta.idUtente}/amici/$chiaveRicevente" to ricevente.trim(),
+                "/amicizie/$chiaveRicevente/richiesteRicevute/${richiesta.idUtente}" to null,
+                "/amicizie/${richiesta.idUtente}/richiesteInviate/$chiaveRicevente" to null,
+                "/amicizie/$chiaveRicevente/richiesteInviate/${richiesta.idUtente}" to null,
+                "/amicizie/${richiesta.idUtente}/richiesteRicevute/$chiaveRicevente" to null
+            )
+            root.updateChildren(aggiornamenti)
+                .addOnSuccessListener { onResult(true, "$nicknameMittente è ora tra i tuoi amici.") }
+                .addOnFailureListener { onResult(false, "Impossibile accettare la richiesta. Riprova.") }
+        }.addOnFailureListener { onResult(false, "Impossibile caricare la richiesta. Controlla la connessione.") }
+    }
+
+    fun rifiutaRichiestaAmicizia(ricevente: String, richiesta: RichiestaAmicizia, onResult: (Boolean, String?) -> Unit) {
+        val chiaveRicevente = chiaveNickname(ricevente)
+        val aggiornamenti = mapOf<String, Any?>(
+            "/amicizie/$chiaveRicevente/richiesteRicevute/${richiesta.idUtente}" to null,
+            "/amicizie/${richiesta.idUtente}/richiesteInviate/$chiaveRicevente" to null
+        )
+        db.getReference().updateChildren(aggiornamenti)
+            .addOnSuccessListener { onResult(true, "Richiesta rifiutata.") }
+            .addOnFailureListener { onResult(false, "Impossibile rifiutare la richiesta. Riprova.") }
     }
 
     fun eliminaUtenteEDataCompleti(nomeUtente: String, onCompletato: () -> Unit) {

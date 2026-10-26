@@ -45,7 +45,6 @@ fun SchermataEsecuzioneAllenamento(
     secondiTrascorsi: Int,
     secondiTimer: Int,
     timerAttivo: Boolean,
-    connessioneDisponibile: Boolean?,
     dataAllenamento: String,
     onDataAllenamentoCambiata: (String) -> Unit,
     pesiDigitatiIniziali: Map<String, String>,
@@ -158,15 +157,6 @@ fun SchermataEsecuzioneAllenamento(
             color = MaterialTheme.colorScheme.surface
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                if (connessioneDisponibile != true) {
-                    Text(
-                        text = if (connessioneDisponibile == false) "Offline: sessione salvata sul dispositivo e in attesa di sincronizzazione" else "Verifica della connessione...",
-                        color = if (connessioneDisponibile == false) MaterialTheme.colorScheme.secondary else Color.Gray,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,

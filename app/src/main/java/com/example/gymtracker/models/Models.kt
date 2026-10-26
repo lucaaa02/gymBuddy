@@ -133,3 +133,8 @@ data class AllenamentoCompletato(
     val notaGeneraleSessione: String = "",
     val dettagliEsercizi: List<EsercizioEseguitoLog> = emptyList()
 )
+
+data class RichiestaAmicizia(
+    val idUtente: String = "",
+    val nickname: String = ""
+)

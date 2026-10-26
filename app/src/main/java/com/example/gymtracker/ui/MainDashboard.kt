@@ -23,7 +23,6 @@ import com.example.gymtracker.models.EsercizioEseguitoLog
 import com.example.gymtracker.models.SchedaAllenamento
 import com.example.gymtracker.models.SerieLog
 import com.example.gymtracker.models.TipoSerie
-import com.example.gymtracker.data.FirebaseManager
 import com.example.gymtracker.data.WorkoutDraft
 import com.example.gymtracker.data.WorkoutDraftStore
 import com.example.gymtracker.services.WorkoutNotificationService
@@ -59,7 +58,6 @@ fun MainDashboard(nomeUtente: String, onLogout: () -> Unit) {
     }
     var pesiDigitatiBozza by remember(nomeUtente) { mutableStateOf(bozzaIniziale?.pesiDigitati.orEmpty()) }
     var ripetizioniDigitateBozza by remember(nomeUtente) { mutableStateOf(bozzaIniziale?.ripetizioniDigitate.orEmpty()) }
-    var connessioneDisponibile by remember { mutableStateOf<Boolean?>(null) }
 
     var timestampFineTimer by remember(nomeUtente) { mutableStateOf(bozzaIniziale?.timerFineMillis ?: 0L) }
     var secondiRimanentiTimer by remember(nomeUtente) {
@@ -84,7 +82,6 @@ fun MainDashboard(nomeUtente: String, onLogout: () -> Unit) {
     )
 
     LaunchedEffect(Unit) {
-        FirebaseManager.ascoltaConnessione { connessioneDisponibile = it }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
@@ -189,7 +186,8 @@ fun MainDashboard(nomeUtente: String, onLogout: () -> Unit) {
             Pair("Resoconto Personale 📅", "Record, carichi e volume della settimana"),
             Pair("Analisi Esercizi 📊", "Filtra e controlli i pesi degli utenti"),
             Pair("Community & Presenze 🏆", "Classifica e calendario presenze"),
-            Pair("Feed Amici 🔥", "Guarda gli allenamenti del gruppo")
+            Pair("Feed Amici 🔥", "Guarda gli allenamenti del gruppo"),
+            Pair("Amici 🤝", "Cerca utenti e gestisci le richieste")
         )
 
         if (eAdmin) {
@@ -356,7 +354,6 @@ fun MainDashboard(nomeUtente: String, onLogout: () -> Unit) {
                             secondiTrascorsi = secondiTrascorsiCronometro,
                             secondiTimer = secondiRimanentiTimer,
                             timerAttivo = timerRecuperoAttivo,
-                            connessioneDisponibile = connessioneDisponibile,
                             dataAllenamento = dataAllenamento,
                             onDataAllenamentoCambiata = { dataAllenamento = it },
                             pesiDigitatiIniziali = pesiDigitatiBozza,
@@ -456,7 +453,8 @@ fun MainDashboard(nomeUtente: String, onLogout: () -> Unit) {
                             4 -> TabStatisticheEsercizi()
                             5 -> TabCommunityDashboard(nomeUtente)
                             6 -> TabFeedAmici(nomeUtente)
-                            7 -> TabGestioneAdmin()
+                            7 -> TabAmici(nomeUtente)
+                            8 -> TabGestioneAdmin()
                         }
                     }
                 }
