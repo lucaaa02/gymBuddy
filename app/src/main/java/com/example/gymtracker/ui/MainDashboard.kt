@@ -9,6 +9,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,6 +25,7 @@ import com.example.gymtracker.models.EsercizioEseguitoLog
 import com.example.gymtracker.models.SchedaAllenamento
 import com.example.gymtracker.models.SerieLog
 import com.example.gymtracker.models.TipoSerie
+import com.example.gymtracker.models.repsPerSerieEffettive
 import com.example.gymtracker.data.WorkoutDraft
 import com.example.gymtracker.data.WorkoutDraftStore
 import com.example.gymtracker.services.WorkoutNotificationService
@@ -40,6 +43,7 @@ fun MainDashboard(nomeUtente: String, onLogout: () -> Unit) {
     val bozzaIniziale = remember(nomeUtente) { WorkoutDraftStore.carica(context, nomeUtente) }
     var selectedScreen by remember { mutableStateOf(0) }
     var schedaInModifica by remember { mutableStateOf<SchedaAllenamento?>(null) }
+    var mostraAiuto by remember { mutableStateOf(false) }
 
     var allenamentoInCorso by remember(nomeUtente) { mutableStateOf(bozzaIniziale?.scheda) }
     var idAllenamentoInCorso by remember(nomeUtente) {
@@ -75,6 +79,67 @@ fun MainDashboard(nomeUtente: String, onLogout: () -> Unit) {
     val scope = rememberCoroutineScope()
 
     val eAdmin = nomeUtente.trim().equals("Luca", ignoreCase = true)
+    val (titoloAiuto, righeAiuto) = when {
+        mostraSchermataAllenamento && allenamentoInCorso != null -> "Allenamento in corso" to listOf(
+            "Registra peso e ripetizioni per ogni serie; rispetta i target configurati nella scheda.",
+            "Se un esercizio non viene svolto, segnalo come non fatto per poter completare la sessione.",
+            "Avvia il timer di recupero tra le serie; cronometro e timer restano visibili anche minimizzando la schermata.",
+            "Al termine salva e condividi la sessione nel Feed. Puoi annullarla se non vuoi conservarla."
+        )
+        selectedScreen == 0 -> "Allenati Ora" to listOf(
+            "Scegli una scheda personale e avvia l’allenamento.",
+            "Inserisci carico e ripetizioni per ciascuna serie; puoi modificare i target durante la sessione.",
+            "Segna come non fatto un esercizio saltato. Usa il timer recupero tra le serie.",
+            "Completa e condividi per salvare la sessione e renderla visibile nel Feed amici."
+        )
+        selectedScreen == 1 -> (if (schedaInModifica == null) "Le Mie Schede" else "Modifica scheda") to listOf(
+            "Crea una scheda con titolo e scegli gli esercizi dal pool condiviso.",
+            "Per ogni esercizio imposta serie, ripetizioni complessive o target diversi per serie, e note.",
+            "Salva la scheda; dall’elenco puoi riaprirla per modificarla o eliminarla."
+        )
+        selectedScreen == 2 -> "Pool Esercizi" to listOf(
+            "Cerca nel catalogo condiviso per nome e gruppo muscolare.",
+            "Aggiungi un esercizio indicando nome e uno o più distretti muscolari.",
+            "Puoi modificare le voci esistenti: gli esercizi del pool sono riutilizzabili nelle schede."
+        )
+        selectedScreen == 3 -> "Resoconto Personale" to listOf(
+            "Scorri le settimane con Prec. e Succ.; il riepilogo include sessioni e volume.",
+            "Esamina volume giornaliero e distribuzione per distretto muscolare.",
+            "Consulta i migliori carichi; tocca un esercizio per aprirne il grafico dei progressi."
+        )
+        selectedScreen == 4 -> "Analisi Esercizi" to listOf(
+            "Seleziona un esercizio per confrontare le prestazioni registrate dagli utenti.",
+            "Le sessioni sono ordinate dalla più recente; carichi, serie e stato dell’esercizio aiutano il confronto.",
+            "I dati dipendono dagli allenamenti salvati e condivisi."
+        )
+        selectedScreen == 5 -> "Community & Presenze" to listOf(
+            "La mappa mostra le presenze del gruppo nel mese selezionato; cambia mese con Prec. e Succ.",
+            "La classifica riassume sessioni e volume mensile degli utenti.",
+            "Consulta anche i record per esercizio riferiti al mese visualizzato."
+        )
+        selectedScreen == 6 -> "Feed Amici" to listOf(
+            "All’apertura vedi gli allenamenti degli ultimi 7 giorni; usa il filtro per consultare quelli precedenti.",
+            "Tocca una sessione per vedere esercizi, serie, carichi e note.",
+            "Puoi modificare o eliminare solo i tuoi allenamenti."
+        )
+        selectedScreen == 7 -> "Amici" to listOf(
+            "Cerca una persona tramite nickname e inviale una richiesta di amicizia.",
+            "Accetta o rifiuta le richieste ricevute; consulta l’elenco degli amici.",
+            "La visibilità dei tuoi allenamenti nel Feed dipende dalle impostazioni di condivisione."
+        )
+        selectedScreen == 8 && eAdmin -> "Gestione Admin" to listOf(
+            "Cerca gli utenti registrati e consulta il numero di allenamenti associati.",
+            "L’eliminazione di un utente richiede conferma e password admin; rimuove i relativi dati."
+        )
+        selectedScreen == 9 && eAdmin -> "Peso corporeo" to listOf(
+            "Il pulsante + apre l’inserimento: scegli la data dal calendario e registra peso e dati nutrizionali.",
+            "La schermata iniziale riassume la settimana e mostra il grafico del peso del mese corrente.",
+            "Nel confronto scegli due settimane: confronta peso medio, calorie, bilancio, proteine e variazione attesa.",
+            "La perdita attesa è (calorie spese − calorie mangiate) ÷ 7.700; richiede entrambi i dati.",
+            "Imposta una volta età, altezza e sesso in Metriche per stimare il metabolismo con Harris-Benedict."
+        )
+        else -> "GymTracker" to listOf("Apri il menu ☰ per scegliere una sezione.")
+    }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
@@ -192,6 +257,7 @@ fun MainDashboard(nomeUtente: String, onLogout: () -> Unit) {
 
         if (eAdmin) {
             lista.add(Pair("Gestione Admin 👑", "Pannello riservato per eliminare utenti"))
+            lista.add(Pair("Peso corporeo ⚖️", "Diario e progressi del peso"))
         }
         lista
     }
@@ -293,6 +359,11 @@ fun MainDashboard(nomeUtente: String, onLogout: () -> Unit) {
                             Text("☰", fontSize = 24.sp, color = MaterialTheme.colorScheme.primary)
                         }
                     },
+                    actions = {
+                        IconButton(onClick = { mostraAiuto = true }) {
+                            Text("?", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = MaterialTheme.colorScheme.primary)
+                        }
+                    },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.surface,
                         titleContentColor = Color.White
@@ -338,11 +409,13 @@ fun MainDashboard(nomeUtente: String, onLogout: () -> Unit) {
                             Text("➔", fontWeight = FontWeight.Bold, color = Color.Black, fontSize = 18.sp)
                         }
                     }
+
                 }
 
                 Box(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .weight(1f)
+                        .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                 ) {
                     if (mostraSchermataAllenamento && allenamentoInCorso != null) {
@@ -415,12 +488,14 @@ fun MainDashboard(nomeUtente: String, onLogout: () -> Unit) {
                                     dettagliEserciziInCorso.addAll(
                                         nuovaScheda.esercizi.map { ex ->
                                             val numSerie = if (ex.serieTarget > 0) ex.serieTarget else 3
-                                            val repsDef = if (ex.repsTarget > 0) ex.repsTarget else 10
+                                            val repsPerSerie = ex.repsPerSerieEffettive()
+                                            val repsDef = repsPerSerie.firstOrNull()?.takeIf { it > 0 }
+                                                ?: if (ex.repsTarget > 0) ex.repsTarget else 10
                                             val serieInit = (1..numSerie).map { n ->
                                                 SerieLog(
                                                     numeroSerie = n,
                                                     pesoKg = 0.0,
-                                                    reps = repsDef,
+                                                    reps = repsPerSerie.getOrNull(n - 1)?.takeIf { it > 0 } ?: repsDef,
                                                     tipo = TipoSerie.NORMALE
                                                 )
                                             }
@@ -455,7 +530,30 @@ fun MainDashboard(nomeUtente: String, onLogout: () -> Unit) {
                             6 -> TabFeedAmici(nomeUtente)
                             7 -> TabAmici(nomeUtente)
                             8 -> TabGestioneAdmin()
+                            9 -> if (eAdmin) TabPesoAdmin() else Unit
                         }
+                    }
+
+                    if (mostraAiuto) {
+                        AlertDialog(
+                            onDismissRequest = { mostraAiuto = false },
+                            title = { Text("Aiuto · $titoloAiuto", fontWeight = FontWeight.Bold) },
+                            text = {
+                                Column(
+                                    modifier = Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState()),
+                                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    righeAiuto.forEach { riga ->
+                                        Text("• $riga", fontSize = 13.sp, color = Color.White)
+                                    }
+                                }
+                            },
+                            confirmButton = {
+                                TextButton(onClick = { mostraAiuto = false }) {
+                                    Text("Ho capito")
+                                }
+                            }
+                        )
                     }
                 }
             }

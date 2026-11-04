@@ -50,14 +50,39 @@ data class EsercizioInScheda(
     val nomeEsercizio: String = "",
     val serieTarget: Int = 3,
     val repsTarget: Int = 10,
+    val repsPerSerie: List<Int> = emptyList(),
     val note: String = ""
 )
+
+fun EsercizioInScheda.repsPerSerieEffettive(): List<Int> =
+    List(serieTarget.coerceAtLeast(0)) { index ->
+        repsPerSerie.getOrNull(index)?.takeIf { it > 0 } ?: repsTarget
+    }
 
 data class SchedaAllenamento(
     val idScheda: String = "",
     val nomeUtente: String = "",
     val titoloScheda: String = "",
     val esercizi: List<EsercizioInScheda> = emptyList()
+)
+
+data class MisurazionePeso(
+    val data: String = "",
+    val pesoKg: Double? = null,
+    val calorieAssunte: Int? = null,
+    val calorieBruciate: Int? = null,
+    val calorieOrologio: Int? = null,
+    val metabolismoBasaleKcal: Double? = null,
+    val pesoMedioSettimanaleUsatoKg: Double? = null,
+    val proteineGrammi: Double? = null,
+    val aggiornatoAlle: Long = 0L
+)
+
+data class ParametriMetabolismo(
+    val eta: Int = 0,
+    val altezzaCm: Int = 0,
+    val sesso: String = "",
+    val aggiornatoAlle: Long = 0L
 )
 
 data class EsercizioEseguitoLog(
@@ -84,7 +109,9 @@ fun EsercizioEseguitoLog.getSerieEffettive(): List<SerieLog> {
 fun EsercizioEseguitoLog.tonnellaggioTotale(): Double {
     val serie = getSerieEffettive()
     if (serie.isNotEmpty()) {
-        return serie.sumOf { it.pesoKg * it.reps }
+        val volumeSerie = serie.sumOf { it.pesoKg * it.reps }
+        val volumeRiepilogo = pesoKg * serieEseguite * repsEseguite
+        return if (volumeSerie > 0.0 || volumeRiepilogo <= 0.0) volumeSerie else volumeRiepilogo
     }
     return pesoKg * serieEseguite * repsEseguite
 }

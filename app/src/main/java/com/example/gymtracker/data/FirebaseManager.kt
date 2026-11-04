@@ -178,6 +178,134 @@ object FirebaseManager {
         })
     }
 
+    fun salvaMisurazionePeso(misurazione: MisurazionePeso, onCompletato: (String?) -> Unit) {
+        val haDati = misurazione.pesoKg != null ||
+            misurazione.calorieAssunte != null ||
+            misurazione.calorieBruciate != null ||
+            misurazione.calorieOrologio != null ||
+            misurazione.metabolismoBasaleKcal != null ||
+            misurazione.pesoMedioSettimanaleUsatoKg != null ||
+            misurazione.proteineGrammi != null
+        if (misurazione.data.isBlank() || !haDati) {
+            onCompletato("Inserisci almeno un dato per questa giornata.")
+            return
+        }
+        db.getReference("peso_admin_luca").child(misurazione.data)
+            .runTransaction(object : Transaction.Handler {
+                override fun doTransaction(currentData: com.google.firebase.database.MutableData): Transaction.Result {
+                    currentData.child("data").value = misurazione.data
+                    misurazione.pesoKg?.let { currentData.child("pesoKg").value = it }
+                    misurazione.calorieAssunte?.let { currentData.child("calorieAssunte").value = it }
+                    misurazione.calorieBruciate?.let { currentData.child("calorieBruciate").value = it }
+                    misurazione.calorieOrologio?.let { currentData.child("calorieOrologio").value = it }
+                    misurazione.metabolismoBasaleKcal?.let { currentData.child("metabolismoBasaleKcal").value = it }
+                    misurazione.pesoMedioSettimanaleUsatoKg?.let {
+                        currentData.child("pesoMedioSettimanaleUsatoKg").value = it
+                    }
+                    misurazione.proteineGrammi?.let { currentData.child("proteineGrammi").value = it }
+                    currentData.child("aggiornatoAlle").value = misurazione.aggiornatoAlle
+                    return Transaction.success(currentData)
+                }
+
+                override fun onComplete(
+                    error: DatabaseError?,
+                    committed: Boolean,
+                    snapshot: DataSnapshot?
+                ) {
+                    when {
+                        error != null -> onCompletato(error.message)
+                        committed -> onCompletato(null)
+                        else -> onCompletato("Salvataggio dei dati giornalieri non riuscito.")
+                    }
+                }
+            })
+    }
+
+    fun ascoltaMisurazioniPeso(
+        onUpdate: (List<MisurazionePeso>) -> Unit,
+        onErrore: (String) -> Unit
+    ) {
+        db.getReference("peso_admin_luca").addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val misurazioni = snapshot.children.mapNotNull { child ->
+                    val data = child.child("data").getValue(String::class.java)
+                        ?: child.key?.takeIf { it.matches(Regex("""\d{4}-\d{2}-\d{2}""")) }
+                    val peso = child.child("pesoKg").getValue(Double::class.java)
+                    val calorieAssunte = child.child("calorieAssunte").getValue(Long::class.java)?.toInt()
+                    val calorieBruciate = child.child("calorieBruciate").getValue(Long::class.java)?.toInt()
+                    val calorieOrologio = child.child("calorieOrologio").getValue(Long::class.java)?.toInt()
+                    val metabolismoBasale = child.child("metabolismoBasaleKcal").getValue(Double::class.java)
+                    val pesoMedioUsato = child.child("pesoMedioSettimanaleUsatoKg").getValue(Double::class.java)
+                    val proteineGrammi = child.child("proteineGrammi").getValue(Double::class.java)
+                    if (
+                        data.isNullOrBlank() ||
+                        (peso == null && calorieAssunte == null && calorieBruciate == null &&
+                            calorieOrologio == null && proteineGrammi == null)
+                    ) {
+                        null
+                    } else {
+                        MisurazionePeso(
+                            data = data,
+                            pesoKg = peso,
+                            calorieAssunte = calorieAssunte,
+                            calorieBruciate = calorieBruciate,
+                            calorieOrologio = calorieOrologio,
+                            metabolismoBasaleKcal = metabolismoBasale,
+                            pesoMedioSettimanaleUsatoKg = pesoMedioUsato,
+                            proteineGrammi = proteineGrammi,
+                            aggiornatoAlle = child.child("aggiornatoAlle").getValue(Long::class.java) ?: 0L
+                        )
+                    }
+                }.sortedBy { it.data }
+                onUpdate(misurazioni)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                onErrore(error.message)
+            }
+        })
+    }
+
+    fun salvaParametriMetabolismo(parametri: ParametriMetabolismo, onCompletato: (String?) -> Unit) {
+        if (parametri.eta !in 18..100 || parametri.altezzaCm !in 100..250 ||
+            parametri.sesso !in setOf("Uomo", "Donna")
+        ) {
+            onCompletato("Controlla età, altezza e sesso.")
+            return
+        }
+        db.getReference("parametri_metabolismo_admin_luca")
+            .setValue(parametri)
+            .addOnSuccessListener { onCompletato(null) }
+            .addOnFailureListener { error ->
+                onCompletato(error.localizedMessage ?: "Salvataggio dei parametri non riuscito.")
+            }
+    }
+
+    fun ascoltaParametriMetabolismo(
+        onUpdate: (ParametriMetabolismo?) -> Unit,
+        onErrore: (String) -> Unit
+    ) {
+        db.getReference("parametri_metabolismo_admin_luca")
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    if (!snapshot.exists()) {
+                        onUpdate(null)
+                        return
+                    }
+                    val parametri = snapshot.getValue(ParametriMetabolismo::class.java)
+                    if (parametri == null) {
+                        onErrore("I parametri salvati non sono validi.")
+                    } else {
+                        onUpdate(parametri)
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    onErrore(error.message)
+                }
+            })
+    }
+
     fun aggiornaAllenamentoSeProprietario(
         allenamento: AllenamentoCompletato,
         proprietario: String,

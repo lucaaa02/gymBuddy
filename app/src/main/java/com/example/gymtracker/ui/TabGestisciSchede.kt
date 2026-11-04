@@ -3,6 +3,7 @@ package com.example.gymtracker.ui
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -18,6 +19,7 @@ import com.example.gymtracker.data.FirebaseManager
 import com.example.gymtracker.models.EsercizioCatalogo
 import com.example.gymtracker.models.EsercizioInScheda
 import com.example.gymtracker.models.SchedaAllenamento
+import com.example.gymtracker.models.repsPerSerieEffettive
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,9 +74,10 @@ fun TabGestisciCreaScheda(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item {
+        item(key = "editor") {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(26.dp),
@@ -196,12 +199,15 @@ fun TabGestisciCreaScheda(
                         onClick = {
                             val ex = esercizioSelezionatoPool
                             if (ex != null) {
+                                val serie = serieTarget.toIntOrNull() ?: 3
+                                val reps = repsTarget.toIntOrNull() ?: 10
                                 listaEserciziInScheda.add(
                                     EsercizioInScheda(
                                         idEsercizio = ex.id,
                                         nomeEsercizio = ex.nome,
-                                        serieTarget = serieTarget.toIntOrNull() ?: 3,
-                                        repsTarget = repsTarget.toIntOrNull() ?: 10,
+                                        serieTarget = serie,
+                                        repsTarget = reps,
+                                        repsPerSerie = List(serie.coerceAtLeast(0)) { reps },
                                         note = noteEx.trim()
                                     )
                                 )
@@ -221,7 +227,7 @@ fun TabGestisciCreaScheda(
 
         // VISUALIZZAZIONE ESERCIZI IN CORSO DI AGGIUNTA
         if (listaEserciziInScheda.isNotEmpty()) {
-            item {
+            item(key = "exercise-header") {
                 Text(
                     text = "Esercizi in questa scheda (${listaEserciziInScheda.size}):",
                     fontWeight = FontWeight.Bold,
@@ -230,7 +236,10 @@ fun TabGestisciCreaScheda(
                 )
             }
 
-            items(listaEserciziInScheda) { ex ->
+            itemsIndexed(
+                items = listaEserciziInScheda,
+                key = { index, ex -> "exercise-$index-${ex.idEsercizio}" }
+            ) { index, ex ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(22.dp),
@@ -245,7 +254,40 @@ fun TabGestisciCreaScheda(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(ex.nomeEsercizio, fontWeight = FontWeight.Bold, color = Color.White, fontSize = 14.sp)
-                            Text("${ex.serieTarget} serie × ${ex.repsTarget} reps", fontSize = 12.sp, color = MaterialTheme.colorScheme.secondary)
+                            Text(
+                                "${ex.serieTarget} serie • ${ex.repsPerSerieEffettive().joinToString("/") } reps",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text("Ripetizioni per serie", fontSize = 11.sp, color = Color.Gray)
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                (0 until ex.serieTarget.coerceAtLeast(0)).toList().chunked(3).forEach { gruppoIndici ->
+                                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                        gruppoIndici.forEach { indiceSerie ->
+                                            OutlinedTextField(
+                                                value = ex.repsPerSerie.getOrNull(indiceSerie)?.toString()
+                                                    ?: ex.repsTarget.toString(),
+                                                onValueChange = { testo ->
+                                                    val repsPerSerie = List(ex.serieTarget.coerceAtLeast(0)) { serie ->
+                                                        ex.repsPerSerie.getOrNull(serie) ?: ex.repsTarget
+                                                    }.toMutableList()
+                                                    repsPerSerie[indiceSerie] = testo.toIntOrNull() ?: 0
+                                                    listaEserciziInScheda[index] = ex.copy(repsPerSerie = repsPerSerie)
+                                                },
+                                                label = { Text("Serie ${indiceSerie + 1}", fontSize = 10.sp) },
+                                                singleLine = true,
+                                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                                shape = RoundedCornerShape(14.dp),
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                        }
+                                        repeat(3 - gruppoIndici.size) {
+                                            Spacer(modifier = Modifier.weight(1f))
+                                        }
+                                    }
+                                }
+                            }
                             if (ex.note.isNotBlank()) {
                                 Text("Note: ${ex.note}", fontSize = 11.sp, color = Color.Gray)
                             }
@@ -257,7 +299,7 @@ fun TabGestisciCreaScheda(
                 }
             }
 
-            item {
+            item(key = "save-actions") {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -299,14 +341,17 @@ fun TabGestisciCreaScheda(
             }
         }
 
-        item {
+        item(key = "saved-sheets-header") {
             Spacer(modifier = Modifier.height(12.dp))
             HorizontalDivider(color = Color.DarkGray)
             Spacer(modifier = Modifier.height(8.dp))
             Text("Le Tue Schede Salvate (${mieSchede.size}):", fontWeight = FontWeight.Bold, fontSize = 14.sp)
         }
 
-        items(mieSchede) { scheda ->
+        items(
+            items = mieSchede,
+            key = { scheda -> "saved-sheet-${scheda.idScheda}" }
+        ) { scheda ->
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(22.dp),

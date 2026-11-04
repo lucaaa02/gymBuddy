@@ -192,7 +192,12 @@ fun TabCommunityDashboard(nomeUtenteLoggato: String) {
             .filter { (_, record) -> record != null }
     }
 
+    val calendarioPrimoGiorno = (calendarioSelezionato.clone() as Calendar).apply {
+        set(Calendar.DAY_OF_MONTH, 1)
+        firstDayOfWeek = Calendar.MONDAY
+    }
     val giorniNelMese = calendarioSelezionato.getActualMaximum(Calendar.DAY_OF_MONTH)
+    val offsetPrimoGiorno = (calendarioPrimoGiorno.get(Calendar.DAY_OF_WEEK) - Calendar.MONDAY + 7) % 7
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -267,17 +272,34 @@ fun TabCommunityDashboard(nomeUtenteLoggato: String) {
 
                     // GRIGLIA CALENDARIO CROMATICA
                     val numColonne = 7
-                    val numRighe = (giorniNelMese + numColonne - 1) / numColonne
+                    val numRighe = (offsetPrimoGiorno + giorniNelMese + numColonne - 1) / numColonne
+                    val nomiGiorni = listOf("Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom")
 
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            nomiGiorni.forEach { nomeGiorno ->
+                                Text(
+                                    text = nomeGiorno,
+                                    modifier = Modifier.weight(1f),
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Gray,
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                )
+                            }
+                        }
+
                         for (riga in 0 until numRighe) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
                                 for (col in 0 until numColonne) {
-                                    val giornoNum = riga * numColonne + col + 1
-                                    if (giornoNum <= giorniNelMese) {
+                                    val giornoNum = riga * numColonne + col - offsetPrimoGiorno + 1
+                                    if (giornoNum in 1..giorniNelMese) {
                                         val utentiInQuelGiorno = mappaGiorniUtenti[giornoNum] ?: emptySet()
                                         val listaColori = utentiInQuelGiorno.mapNotNull { mappaColoriUtenti[it] }
 

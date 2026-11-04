@@ -17,7 +17,7 @@ android {
         applicationId = "com.example.gymtracker"
         minSdk = 26
         targetSdk = 34
-        versionCode = providers.gradleProperty("appVersionCode").orNull?.toInt() ?: 1
+        versionCode = providers.gradleProperty("appVersionCode").orNull?.toInt() ?: 5
         versionName = providers.gradleProperty("appVersionName").orNull ?: "1.0"
     }
 
@@ -35,7 +35,9 @@ android {
 
     buildTypes {
         getByName("release") {
-            signingConfig = signingConfigs.getByName("release")
+            if (!System.getenv("ANDROID_KEYSTORE_PATH").isNullOrBlank()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isMinifyEnabled = false
         }
     }

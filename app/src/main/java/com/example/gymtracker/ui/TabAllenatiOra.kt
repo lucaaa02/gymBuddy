@@ -20,6 +20,7 @@ import com.example.gymtracker.models.EsercizioEseguitoLog
 import com.example.gymtracker.models.SchedaAllenamento
 import com.example.gymtracker.models.SerieLog
 import com.example.gymtracker.models.TipoSerie
+import com.example.gymtracker.models.repsPerSerieEffettive
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -274,7 +275,11 @@ fun SchermataEsecuzioneAllenamento(
                             }
                         }
 
-                        Text("Target scheda: ${ex.serieTarget} serie × ${ex.repsTarget} reps", fontSize = 11.sp, color = Color.Gray)
+                        Text(
+                            "Target scheda: ${ex.serieTarget} serie • ${ex.repsPerSerieEffettive().joinToString("/")} reps",
+                            fontSize = 11.sp,
+                            color = Color.Gray
+                        )
 
                         if (ultimoLogEsercizio != null) {
                             Text(
@@ -382,10 +387,22 @@ fun SchermataEsecuzioneAllenamento(
                         
                         val pesoNum = pesiState[index]?.toDoubleOrNull() ?: 0.0
                         val serieNum = serieFatteState[index]?.toIntOrNull() ?: ex.serieTarget
-                        val repsNum = repsFatteState[index]?.toIntOrNull() ?: ex.repsTarget
+                        val repsPerSerie = ex.repsPerSerieEffettive()
+                        val repsNum = repsFatteState[index]?.toIntOrNull()
+                            ?: repsPerSerie.firstOrNull()
+                            ?: ex.repsTarget
 
                         val serieDett = if (eSaltato) emptyList() else (1..serieNum).map { num ->
-                            SerieLog(numeroSerie = num, pesoKg = pesoNum, reps = repsNum, tipo = TipoSerie.NORMALE)
+                            SerieLog(
+                                numeroSerie = num,
+                                pesoKg = pesoNum,
+                                reps = if (repsFatteState[index].isNullOrBlank()) {
+                                    repsPerSerie.getOrNull(num - 1) ?: repsNum
+                                } else {
+                                    repsNum
+                                },
+                                tipo = TipoSerie.NORMALE
+                            )
                         }
                         EsercizioEseguitoLog(
                             idEsercizio = ex.idEsercizio,

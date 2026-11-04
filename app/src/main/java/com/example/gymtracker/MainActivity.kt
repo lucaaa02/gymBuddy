@@ -59,7 +59,7 @@ fun AppNavigation() {
             )
             "registrati" -> RegistrationScreen(
                 onRegistrationSuccess = { nuovoNome ->
-                    sharedPref.edit().putString("NOME_UTENTE", nuovoNome).apply()
+                        sharedPref.edit().putString("NOME_UTENTE", nuovoNome).apply()
                     utenteLoggato = nuovoNome
                 },
                 onBack = { schermata = "benvenuto" }

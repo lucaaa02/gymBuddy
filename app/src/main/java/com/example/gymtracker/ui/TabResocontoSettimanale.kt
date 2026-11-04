@@ -71,12 +71,14 @@ fun TabResocontoSettimanale(nomeUtenteLoggato: String) {
         cal.set(Calendar.HOUR_OF_DAY, 0)
         cal.set(Calendar.MINUTE, 0)
         cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
         val inizio = cal.time
 
         cal.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY)
         cal.set(Calendar.HOUR_OF_DAY, 23)
         cal.set(Calendar.MINUTE, 59)
         cal.set(Calendar.SECOND, 59)
+        cal.set(Calendar.MILLISECOND, 999)
         val fine = cal.time
 
         val fmt = SimpleDateFormat("dd/MM/yyyy", Locale.ITALIAN)
@@ -92,22 +94,26 @@ fun TabResocontoSettimanale(nomeUtenteLoggato: String) {
         cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
         cal.set(Calendar.HOUR_OF_DAY, 0)
         cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
         val inizio = cal.time
 
         cal.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY)
         cal.set(Calendar.HOUR_OF_DAY, 23)
         cal.set(Calendar.MINUTE, 59)
+        cal.set(Calendar.SECOND, 59)
+        cal.set(Calendar.MILLISECOND, 999)
         val fine = cal.time
 
         Pair(inizio, fine)
     }
 
-    val sdfData = SimpleDateFormat("dd/MM/yyyy", Locale.ITALIAN)
+    val sdfData = remember { SimpleDateFormat("dd/MM/yyyy", Locale.ITALIAN).apply { isLenient = false } }
 
     // Helper per verificare se una data stringa ricade in un intervallo
     fun dataInIntervallo(dataStr: String, inizio: Date, fine: Date): Boolean {
         return try {
-            val d = sdfData.parse(dataStr) ?: return false
+            val d = sdfData.parse(dataStr.trim()) ?: return false
             d >= inizio && d <= fine
         } catch (e: Exception) {
             false
@@ -117,14 +123,14 @@ fun TabResocontoSettimanale(nomeUtenteLoggato: String) {
     // Filter Allenamenti Settimana Corrente e Precedente per l'utente loggato
     val allenamentiSettimana = remember(feedAllenamenti, inizoSettimanaDate, fineSettimanaDate, nomeUtenteLoggato) {
         feedAllenamenti.filter { log ->
-            log.nomeUtente.equals(nomeUtenteLoggato, ignoreCase = true) &&
+            log.nomeUtente.trim().equals(nomeUtenteLoggato.trim(), ignoreCase = true) &&
             dataInIntervallo(log.data, inizoSettimanaDate, fineSettimanaDate)
         }
     }
 
     val allenamentiSettimanaPrec = remember(feedAllenamenti, inizioPrecDate, finePrecDate, nomeUtenteLoggato) {
         feedAllenamenti.filter { log ->
-            log.nomeUtente.equals(nomeUtenteLoggato, ignoreCase = true) &&
+            log.nomeUtente.trim().equals(nomeUtenteLoggato.trim(), ignoreCase = true) &&
             dataInIntervallo(log.data, inizioPrecDate, finePrecDate)
         }
     }
@@ -318,7 +324,12 @@ fun TabResocontoSettimanale(nomeUtenteLoggato: String) {
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         Text("Volume Sollevato", fontSize = 11.sp, color = Color.Gray)
-                        Text("${tonnellaggioTotale.toInt()} kg", fontSize = 20.sp, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary)
+                        Text(
+                            "${String.format(Locale.ITALIAN, "%.1f", tonnellaggioTotale)} kg",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Black,
+                            color = MaterialTheme.colorScheme.primary
+                        )
                         val segnoTonn = if (diffTonnellaggioPercentuale >= 0) "+" else ""
                         Text(
                             text = "$segnoTonn${String.format("%.1f", diffTonnellaggioPercentuale)}% vs prec.",

@@ -89,6 +89,9 @@ object WorkoutDraftStore {
                     .put("nomeEsercizio", esercizio.nomeEsercizio)
                     .put("serieTarget", esercizio.serieTarget)
                     .put("repsTarget", esercizio.repsTarget)
+                    .put("repsPerSerie", JSONArray().apply {
+                        esercizio.repsPerSerie.forEach { put(it) }
+                    })
                     .put("note", esercizio.note))
             }
         })
@@ -106,6 +109,9 @@ object WorkoutDraftStore {
                     nomeEsercizio = esercizio.optString("nomeEsercizio"),
                     serieTarget = esercizio.optInt("serieTarget", 3),
                     repsTarget = esercizio.optInt("repsTarget", 10),
+                    repsPerSerie = esercizio.optJSONArray("repsPerSerie")?.let { reps ->
+                        (0 until reps.length()).map { reps.optInt(it) }
+                    }.orEmpty(),
                     note = esercizio.optString("note")
                 )
             }

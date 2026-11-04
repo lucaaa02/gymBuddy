@@ -39,7 +39,7 @@ fun TabFeedAmici(nomeUtenteLoggato: String) {
     var feed by remember { mutableStateOf(listOf<AllenamentoCompletato>()) }
     var allenamentoSelezionato by remember { mutableStateOf<AllenamentoCompletato?>(null) }
     var inModalitaModifica by remember { mutableStateOf(false) }
-    var filtroPeriodo by remember { mutableStateOf("Tutti") }
+    var filtroPeriodo by remember { mutableStateOf("Ultimi 7 giorni") }
     var erroreOperazione by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
@@ -57,14 +57,17 @@ fun TabFeedAmici(nomeUtenteLoggato: String) {
         }
         val inizioFiltro = when (filtroPeriodo) {
             "Ultimi 7 giorni" -> (adesso.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, -6) }
-            "Ultimi 30 giorni" -> (adesso.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, -29) }
             else -> null
         }
         feed.filter { allenamento ->
             allenamento.visibilePer(utentiVisibili)
         }.filter { allenamento ->
             val data = runCatching { parserData.parse(allenamento.data) }.getOrNull()
-            inizioFiltro == null || (data != null && !data.before(inizioFiltro.time))
+            when (filtroPeriodo) {
+                "Ultimi 7 giorni" -> data != null && inizioFiltro != null && !data.before(inizioFiltro.time)
+                "Allenamenti precedenti" -> data == null || (inizioFiltro != null && data.before(inizioFiltro.time))
+                else -> true
+            }
         }.groupBy { it.nomeUtente.trim().ifBlank { "Utente sconosciuto" } }
             .toSortedMap(String.CASE_INSENSITIVE_ORDER)
             .map { (nickname, allenamenti) ->
@@ -86,12 +89,20 @@ fun TabFeedAmici(nomeUtenteLoggato: String) {
 
     Column(modifier = Modifier.fillMaxSize()) {
         Text("Feed Allenamenti Gruppo 🔥", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-        Text("Gli allenamenti sono raggruppati per utente e mese. Puoi modificare o eliminare solo i tuoi.", fontSize = 12.sp, color = Color.Gray)
+        Text(
+            if (filtroPeriodo == "Ultimi 7 giorni") {
+                "Mostro gli allenamenti degli ultimi 7 giorni. Puoi consultare quelli precedenti dalla scheda dedicata."
+            } else {
+                "Archivio degli allenamenti precedenti agli ultimi 7 giorni."
+            },
+            fontSize = 12.sp,
+            color = Color.Gray
+        )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         Row(modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf("Tutti", "Ultimi 7 giorni", "Ultimi 30 giorni").forEach { filtro ->
+            listOf("Ultimi 7 giorni", "Allenamenti precedenti").forEach { filtro ->
                 FilterChip(selected = filtroPeriodo == filtro, onClick = { filtroPeriodo = filtro }, label = { Text(filtro) })
             }
         }
