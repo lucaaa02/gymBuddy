@@ -55,17 +55,16 @@ fun TabFeedAmici(nomeUtenteLoggato: String) {
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
         }
-        val inizioFiltro = when (filtroPeriodo) {
-            "Ultimi 7 giorni" -> (adesso.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, -6) }
-            else -> null
+        val inizioFiltro = (adesso.clone() as Calendar).apply {
+            add(Calendar.DAY_OF_YEAR, -6)
         }
         feed.filter { allenamento ->
             allenamento.visibilePer(utentiVisibili)
         }.filter { allenamento ->
             val data = runCatching { parserData.parse(allenamento.data) }.getOrNull()
             when (filtroPeriodo) {
-                "Ultimi 7 giorni" -> data != null && inizioFiltro != null && !data.before(inizioFiltro.time)
-                "Allenamenti precedenti" -> data == null || (inizioFiltro != null && data.before(inizioFiltro.time))
+                "Ultimi 7 giorni" -> data != null && !data.before(inizioFiltro.time)
+                "Allenamenti precedenti" -> data == null || data.before(inizioFiltro.time)
                 else -> true
             }
         }.groupBy { it.nomeUtente.trim().ifBlank { "Utente sconosciuto" } }
@@ -354,6 +353,49 @@ fun TabFeedAmici(nomeUtenteLoggato: String) {
                                     Spacer(modifier = Modifier.height(6.dp))
 
                                     val serieDett = ex.getSerieEffettive()
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        TextButton(
+                                            enabled = serieDett.isNotEmpty(),
+                                            onClick = {
+                                                val serieAggiornate = serieDett.dropLast(1)
+                                                    .mapIndexed { serieIndex, serie ->
+                                                        serie.copy(numeroSerie = serieIndex + 1)
+                                                    }
+                                                listaEserciziMod[index] = ex.copy(
+                                                    serieEseguite = serieAggiornate.size,
+                                                    serieDettaglio = serieAggiornate
+                                                )
+                                            },
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text("− Rimuovi serie", color = Color.Red)
+                                        }
+                                        TextButton(
+                                            onClick = {
+                                                val nuovaSerie = serieDett.lastOrNull()?.copy(
+                                                    numeroSerie = serieDett.size + 1
+                                                ) ?: SerieLog(
+                                                    numeroSerie = 1,
+                                                    pesoKg = ex.pesoKg,
+                                                    reps = ex.repsEseguite,
+                                                    tipo = TipoSerie.NORMALE
+                                                )
+                                                val serieAggiornate = serieDett + nuovaSerie
+                                                listaEserciziMod[index] = ex.copy(
+                                                    saltato = false,
+                                                    serieEseguite = serieAggiornate.size,
+                                                    serieDettaglio = serieAggiornate
+                                                )
+                                            },
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text("+ Aggiungi serie", color = MaterialTheme.colorScheme.secondary)
+                                        }
+                                    }
+
                                     serieDett.forEachIndexed { sIdx, serieItem ->
                                         Row(
                                             modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),

@@ -20,6 +20,7 @@ import com.example.gymtracker.models.EsercizioEseguitoLog
 import com.example.gymtracker.models.SchedaAllenamento
 import com.example.gymtracker.models.SerieLog
 import com.example.gymtracker.models.TipoSerie
+import com.example.gymtracker.models.pesoMax
 import com.example.gymtracker.models.repsPerSerieEffettive
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
@@ -103,10 +104,20 @@ fun SchermataEsecuzioneAllenamento(
     var listaEserciziIncompletiNames by remember { mutableStateOf(listOf<String>()) }
 
     var storicoAllenamenti by remember { mutableStateOf(listOf<AllenamentoCompletato>()) }
+    val formatoDataStorico = remember {
+        SimpleDateFormat("dd/MM/yyyy", Locale.ITALIAN).apply { isLenient = false }
+    }
 
     LaunchedEffect(Unit) {
         FirebaseManager.ascoltaFeedAllenamenti { lista ->
-            storicoAllenamenti = lista.filter { it.nomeUtente.equals(nomeUtente, ignoreCase = true) }
+            storicoAllenamenti = lista
+                .filter { it.nomeUtente.equals(nomeUtente, ignoreCase = true) }
+                .sortedWith(
+                    compareByDescending<AllenamentoCompletato> {
+                        runCatching { formatoDataStorico.parse(it.data)?.time }.getOrNull()
+                            ?: Long.MIN_VALUE
+                    }.thenByDescending { it.id }
+                )
         }
     }
 
@@ -244,13 +255,18 @@ fun SchermataEsecuzioneAllenamento(
                 val ex = scheda.esercizi[index]
                 val saltato = eserciziSaltatiState[index] ?: false
 
-                val ultimoLogEsercizio = storicoAllenamenti
-                    .flatMap { it.dettagliEsercizi }
-                    .firstOrNull { 
-                        (it.nomeEsercizio.equals(ex.nomeEsercizio, ignoreCase = true) || 
-                        (it.idEsercizio.isNotBlank() && it.idEsercizio == ex.idEsercizio)) &&
-                        !it.saltato
+                val ultimoLogEsercizio = remember(storicoAllenamenti, ex.idEsercizio, ex.nomeEsercizio) {
+                    storicoAllenamenti.firstNotNullOfOrNull { allenamento ->
+                        val esercizioConId = ex.idEsercizio.takeIf { it.isNotBlank() }?.let { id ->
+                            allenamento.dettagliEsercizi.lastOrNull { it.idEsercizio == id }
+                        }
+                        val esercizio = esercizioConId ?: allenamento.dettagliEsercizi.lastOrNull {
+                            it.idEsercizio.isBlank() &&
+                                it.nomeEsercizio.equals(ex.nomeEsercizio, ignoreCase = true)
+                        }
+                        esercizio?.takeUnless { it.saltato }
                     }
+                }
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -283,7 +299,7 @@ fun SchermataEsecuzioneAllenamento(
 
                         if (ultimoLogEsercizio != null) {
                             Text(
-                                text = "📊 Ultima volta svolto: ${ultimoLogEsercizio.pesoKg} kg × ${ultimoLogEsercizio.repsEseguite} reps (${ultimoLogEsercizio.serieEseguite} serie)",
+                                text = "📊 Ultima volta svolto: ${ultimoLogEsercizio.pesoMax()} kg × ${ultimoLogEsercizio.repsEseguite} reps (${ultimoLogEsercizio.serieEseguite} serie)",
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.secondary,
